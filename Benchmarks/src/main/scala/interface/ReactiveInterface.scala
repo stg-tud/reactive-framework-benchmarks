@@ -4,9 +4,6 @@ import reactive.signals.Signal
 
 import scala.collection.immutable.Seq
 import scala.language.higherKinds
-import scala.concurrent.{Await, Promise, ExecutionContext}
-import scala.concurrent.duration.Duration
-import java.util.concurrent.TimeUnit
 
 /**
  * this tries to create some common abstractions for reactive implementations
