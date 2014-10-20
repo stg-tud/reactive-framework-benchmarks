@@ -16,15 +16,17 @@ scalaVersion := "2.11.2"
 lazy val benchmarks = Project(
   id = "benchmarks",
   base = file("."),
-  dependencies = List(rescala, sidup))
+  dependencies = List(rescala, sidup, scalaReact))
 
 lazy val rescalaRoot = RootProject(file("../../REScala"))
 
 lazy val rescala = ProjectRef(rescalaRoot.build, "rescala")
 
+lazy val sidupRoot = RootProject(file("../../SID-UP"))
+
 lazy val sidup = ProjectRef(sidupRoot.build, "core")
 
-lazy val sidupRoot = RootProject(file("../../SID-UP"))
+lazy val scalaReact = ProjectRef(file("../../scala-react"), "scala-react")
 
 jmhSettings
 
@@ -64,7 +66,9 @@ javaOptions ++= (
 
 resolvers ++= (Nil)
 
-libraryDependencies ++= (Nil)
+libraryDependencies ++= (
+  "com.scalarx" %% "scalarx" % "0.2.6" ::
+    Nil)
 
 initialCommands in console := """
                               """

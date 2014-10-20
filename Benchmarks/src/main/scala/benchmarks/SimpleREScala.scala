@@ -1,14 +1,13 @@
-package de.tuda.stg.reactive.benchmarks
+package benchmarks
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
+import rescala.signals._
 
-import reactive.signals._
-
-trait SimpleSIDUP {
+trait SimpleREScala {
 
   var source: Var[Int] = _
   var result: Signal[Int] = _
@@ -18,13 +17,13 @@ trait SimpleSIDUP {
   def setup() = {
     input = new AtomicInteger(0)
     source = Var(input.get())
-    result = source.single.map(1.+).single.map(1.+).single.map(1.+)
+    result = source.map(1.+).map(1.+).map(1.+)
   }
 
   @Benchmark
   def run(bh: Blackhole) = {
-    source.<<(input.incrementAndGet())
-    result.single.now
+    source.set(input.incrementAndGet())
+    result.get
   }
 
 }
@@ -37,7 +36,7 @@ trait SimpleSIDUP {
 @Measurement(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
 @Threads(8)
-class SimpleSIDUPThreadLocal extends SimpleSIDUP
+class SimpleREScalaThreadLocal extends SimpleREScala
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -46,4 +45,4 @@ class SimpleSIDUPThreadLocal extends SimpleSIDUP
 @Measurement(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
 @Threads(8)
-class SimpleSIDUPShared extends SimpleSIDUP
+class SimpleREScalaShared extends SimpleREScala
