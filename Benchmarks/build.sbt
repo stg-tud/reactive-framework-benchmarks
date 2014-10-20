@@ -4,31 +4,22 @@ version := "0.0.0"
 
 scalaVersion := "2.11.2"
 
-//scalaSource in Compile <<= baseDirectory {(base) => new File(base, "src")}
+//lazy val benchmarks = Project(
+//  id = "benchmarks",
+//  base = file("."),
+//  dependencies = List(rescala, sidup, scalaReact))
+//
+//lazy val rescalaRoot = RootProject(file("../../REScala"))
+//
+//lazy val rescala = ProjectRef(rescalaRoot.build, "rescala")
+//
+//lazy val sidupRoot = RootProject(file("../../SID-UP"))
+//
+//lazy val sidup = ProjectRef(sidupRoot.build, "core")
+//
+//lazy val scalaReact = ProjectRef(file("../../scala-react"), "scala-react")
 
-//scalaSource in Test <<= baseDirectory {(base) => new File(base, "test")}
 
-//resourceDirectory in Compile <<= baseDirectory {(base) => new File(base, "resources")}
-
-//this improves incremental compilation with sbt 13.2 and scala 2.11
-//incOptions := incOptions.value.withNameHashing(true)
-
-lazy val benchmarks = Project(
-  id = "benchmarks",
-  base = file("."),
-  dependencies = List(rescala, sidup, scalaReact))
-
-lazy val rescalaRoot = RootProject(file("../../REScala"))
-
-lazy val rescala = ProjectRef(rescalaRoot.build, "rescala")
-
-lazy val sidupRoot = RootProject(file("../../SID-UP"))
-
-lazy val sidup = ProjectRef(sidupRoot.build, "core")
-
-lazy val scalaReact = ProjectRef(file("../../scala-react"), "scala-react")
-
-jmhSettings
 
 scalacOptions ++= (
   "-deprecation" ::
@@ -68,6 +59,9 @@ resolvers ++= (Nil)
 
 libraryDependencies ++= (
   "com.scalarx" %% "scalarx" % "0.2.6" ::
+    "de.tuda.stg" %% "rescala" % "0.3.0" ::
+    "de.tuda.stg" %% "sidup-core" % "0.1.1-STM" ::
+    "github.com.ingoem" %% "scala-react" % "1.0" ::
     Nil)
 
 initialCommands in console := """
