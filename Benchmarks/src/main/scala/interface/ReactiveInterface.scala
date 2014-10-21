@@ -1,15 +1,26 @@
 package interface
 
-import reactive.signals.Signal
+import reactive.events.{EventStream, EventSource}
 
 import scala.collection.immutable.Seq
 import scala.language.higherKinds
+
 
 /**
  * this tries to create some common abstractions for reactive implementations
  * to make implementing benchmarks for different frameworks easier
  */
-trait ReactiveInterface[ISignal[_], ISignalSource[_], IEvent[_], IEventSource[_]] {
+trait ReactiveInterface {
+
+  type ISignal[_]
+  type ISignalSource[A] <: ISignal[A]
+  type IEvent[_]
+  type IEventSource[A] <: IEvent[A]
+
+  implicit class SignalOps[A](self: ISignal[A]) {
+    def map[B](f: A => B): ISignal[B] = mapSignal(self)(f)
+  }
+
   def mapSignal[I, O](signal: ISignal[I])(f: I => O): ISignal[O]
 
   def setSignal[V](source: ISignalSource[V])(value: V): Unit
@@ -26,11 +37,50 @@ trait ReactiveInterface[ISignal[_], ISignalSource[_], IEvent[_], IEventSource[_]
 }
 
 object ReactiveInterface {
-  val sidup: ReactiveInterface[reactive.signals.Signal, reactive.signals.Var, reactive.events.EventStream, reactive.events.EventSource] = {
+
+  val rescalaInstance: ReactiveInterface = {
+    import rescala.signals._
+    import rescala.events._
+    new ReactiveInterface {
+
+      override type IEventSource[A] = ImperativeEvent[A]
+      override type ISignal[A] = Signal[A]
+      override type ISignalSource[A] = Var[A]
+      override type IEvent[A] = Event[A]
+
+      def mapSignal[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
+
+      def setSignal[V](source: Var[V])(value: V): Unit = source.set(value)
+
+      def setSignals[V](changes: (Var[V], V)*): Unit = Predef.???
+
+      def getSignal[V](sink: Signal[V]): V = sink.get
+
+      def makeSignal[V](value: V): Var[V] = Var(value)
+
+      def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = Signals.mapping(signals: _*){ turn =>
+        signals.map(_.getValue(turn))
+      }
+
+      override def combineSeq[V, R](signals: Seq[Signal[V]])(f: Seq[V] => R): Signal[R] = Signals.mapping(signals: _*){ turn =>
+        f(signals.map(_.getValue(turn)))
+      }
+
+      override def combine2[A1, A2, R](s1: Signal[A1], s2: Signal[A2])(f: (A1, A2) => R): Signal[R] = Signals.lift(s1, s2)(f)
+      override def combine3[A1, A2, A3, R](s1: Signal[A1], s2: Signal[A2], s3: Signal[A3])(f: (A1, A2, A3) => R): Signal[R] = Signals.lift(s1, s2, s3)(f)
+    }
+  }
+
+  val sidup: ReactiveInterface = {
     import reactive.signals.{Signal, Var}
     import reactive.events.{EventSource, EventStream}
     import scala.concurrent.stm.atomic
-    new ReactiveInterface[Signal, Var, EventStream, EventSource] {
+    new ReactiveInterface {
+
+      override type IEventSource[A] = EventSource[A]
+      override type ISignal[A] = Signal[A]
+      override type ISignalSource[A] = Var[A]
+      override type IEvent[A] = EventStream[A]
 
       def mapSignal[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.single.map(f)
 
@@ -63,10 +113,15 @@ object ReactiveInterface {
     }
   }
 
-  val scalaRx: ReactiveInterface[rx.Rx, rx.Var, rx.Rx, rx.Var] = {
+  val scalaRx: ReactiveInterface = {
     import rx._
 
-    new ReactiveInterface[Rx, Var, Rx, Var] {
+    new ReactiveInterface {
+
+      override type IEventSource[A] = Var[A]
+      override type ISignal[A] = Rx[A]
+      override type ISignalSource[A] = Var[A]
+      override type IEvent[A] = Rx[A]
       def mapSignal[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = Rx(f(signal()))
 
       def setSignal[V](source: rx.Var[V])(value: V): Unit = source() = value
@@ -87,21 +142,31 @@ object ReactiveInterface {
     }
   }
 
-  class WrappedDomain extends scala.react.Domain {
+  object WrappedDomain extends scala.react.Domain {
     val scheduler = new ManualScheduler()
     val engine = new Engine()
   }
 
-  def scalaReact(domain: scala.react.Domain = new WrappedDomain()): ReactiveInterface[domain.type#Signal, domain.type#Var, domain.type#Events, domain.type#EventSource] = {
-    new ReactiveInterface[domain.type#Signal, domain.type#Var, domain.type#Events, domain.type#EventSource] {
-      def mapSignal[I, O](signal: domain.type#Signal[I])(f: (I) => O): domain.type#Signal[O] = {
-        var result: Option[domain.type#Signal[O]] = None
+  def scalaReact(domain: scala.react.Domain = WrappedDomain): ReactiveInterface = {
+    new ReactiveInterface {
+
+
+      override type IEventSource[A] = domain.type#EventSource[A]
+      override type ISignal[A] = domain.type#Signal[A]
+      override type ISignalSource[A] = domain.type#Var[A]
+      override type IEvent[A] = domain.type#Events[A]
+
+      def scheduleAndRun[R](f: => R): R = domain.synchronized {
+        var result: Option[R] = None
         domain.schedule {
-          result = Some { domain.Strict { f(signal()) } }
+          result = Some { f }
         }
         domain.runTurn(())
         result.get
       }
+
+      def mapSignal[I, O](signal: domain.type#Signal[I])(f: (I) => O): domain.type#Signal[O] =
+        scheduleAndRun { domain.Strict { f(signal()) } }
 
       val observer = new domain.Observing {}
 
@@ -109,35 +174,22 @@ object ReactiveInterface {
 
       def setSignal[V](source: domain.type#Var[V])(value: V): Unit = setSignals(source -> value)
 
-      def setSignals[V](changes: (domain.type#Var[V], V)*): Unit = {
-        domain.schedule {
-          changes.foreach { case (source, v) => source() = v }
-        }
-        domain.runTurn(())
-      }
+      def setSignals[V](changes: (domain.type#Var[V], V)*): Unit =
+        scheduleAndRun { changes.foreach { case (source, v) => source() = v }}
 
       def makeSignal[V](value: V): domain.type#Var[V] = domain.Var(value)(domain.owner)
 
-      def transpose[V](signals: Seq[domain.type#Signal[V]]): domain.type#Signal[Seq[V]] = {
-        var res: Option[domain.type#Signal[Seq[V]]] = None
-        domain.schedule {
-          res = Some { domain.Strict { signals.map(_()) } }
-        }
-        domain.runTurn(())
-        res.get
-      }
+      def transpose[V](signals: Seq[domain.type#Signal[V]]): domain.type#Signal[Seq[V]] =
+        scheduleAndRun { domain.Strict { signals.map(_()) } }
 
-      def combineSeq[V, R](signals: Seq[domain.type#Signal[V]])(f: (Seq[V]) => R): domain.type#Signal[R] = {
-        var res: Option[domain.type#Signal[R]] = None
-        domain.schedule {
-          res = Some { domain.Strict { f(signals.map(_())) } }
-        }
-        domain.runTurn(())
-        res.get
-      }
+      def combineSeq[V, R](signals: Seq[domain.type#Signal[V]])(f: (Seq[V]) => R): domain.type#Signal[R] =
+        scheduleAndRun { domain.Strict { f(signals.map(_())) } }
 
-      override def combine2[A1, A2, R](s1: domain.type#Signal[A1], s2: domain.type#Signal[A2])(f: (A1, A2) => R): domain.type#Signal[R] = domain.Strict(f(s1(), s2()))
-      override def combine3[A1, A2, A3, R](s1: domain.type#Signal[A1], s2: domain.type#Signal[A2], s3: domain.type#Signal[A3])(f: (A1, A2, A3) => R): domain.type#Signal[R] = domain.Strict(f(s1(), s2(), s3()))
+      override def combine2[A1, A2, R](s1: domain.type#Signal[A1], s2: domain.type#Signal[A2])(f: (A1, A2) => R): domain.type#Signal[R] =
+        scheduleAndRun { domain.Strict(f(s1(), s2())) }
+
+      override def combine3[A1, A2, A3, R](s1: domain.type#Signal[A1], s2: domain.type#Signal[A2], s3: domain.type#Signal[A3])(f: (A1, A2, A3) => R): domain.type#Signal[R] =
+        scheduleAndRun { domain.Strict(f(s1(), s2(), s3())) }
     }
   }
 
