@@ -21,6 +21,8 @@ lazy val scalaReact = ProjectRef(file("../../scala-react"), "scala-react")
 
 jmhSettings
 
+mainClass in (Compile, run) := Some("benchmarks.Main")
+
 scalacOptions ++= (
   "-deprecation" ::
     "-encoding" :: "UTF-8" ::

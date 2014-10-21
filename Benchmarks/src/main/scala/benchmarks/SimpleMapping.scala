@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import interface.ReactiveInterface
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
+import org.openjdk.jmh.runner.Runner
+import org.openjdk.jmh.runner.options.{OptionsBuilder, Options}
 import rescala.signals._
 
 object GetRI {
@@ -52,11 +54,11 @@ class SharedState extends SomeState {
 
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-@Warmup(iterations = 8, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
+@Warmup(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Measurement(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
-@Fork(2)
+@Fork(1)
 @Threads(8)
-class SimpleREScala {
+class SimpleMapping {
 
   @Benchmark
   def local(bh: Blackhole, state: LocalState) = {
@@ -71,5 +73,6 @@ class SimpleREScala {
     RI.setSignal(source)(input.incrementAndGet())
     RI.getSignal(result)
   }
+
 
 }

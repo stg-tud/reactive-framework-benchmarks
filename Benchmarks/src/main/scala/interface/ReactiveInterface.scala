@@ -142,12 +142,12 @@ object ReactiveInterface {
     }
   }
 
-  object WrappedDomain extends scala.react.Domain {
+  class WrappedDomain extends scala.react.Domain {
     val scheduler = new ManualScheduler()
     val engine = new Engine()
   }
 
-  def scalaReact(domain: scala.react.Domain = WrappedDomain): ReactiveInterface = {
+  def scalaReact(domain: scala.react.Domain = new WrappedDomain()): ReactiveInterface = {
     new ReactiveInterface {
 
 
