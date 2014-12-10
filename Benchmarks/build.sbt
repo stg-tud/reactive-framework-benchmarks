@@ -21,7 +21,8 @@ lazy val scalaReact = ProjectRef(file("../../scala-react"), "scala-react")
 
 jmhSettings
 
-mainClass in (Compile, run) := Some("benchmarks.Main")
+//mainClass in (Compile, run) := Some("benchmarks.Main")
+mainClass in (Compile, run) := Some("philosophers.REScalaPhilosophers")
 
 scalacOptions ++= (
   "-deprecation" ::

@@ -1,6 +1,6 @@
 package philosophers
 
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit, ThreadPoolExecutor, TimeoutException}
 
 import rescala.Signals.lift
 import rescala.{Var, Signal, Observe, DependentUpdate}
@@ -8,14 +8,17 @@ import rescala.graph.Pulsing
 import rescala.turns.Engines.pessimistic
 
 import scala.collection.immutable.IndexedSeq
-import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ExecutionContext, Await, Future}
 
 
 
 object REScalaPhilosophers extends App {
   val size = 3
+
+  implicit val pool: ExecutionContext = ExecutionContext.fromExecutor(new ThreadPoolExecutor(
+    0, 1, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue[Runnable]))
+
 
   // ============================================= Infrastructure ========================================================
 
@@ -45,7 +48,7 @@ object REScalaPhilosophers extends App {
 
   case class Seating(placeNumber: Integer, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], canEat: Signal[Boolean])
   def createTable(tableSize: Int): Seq[Seating] = {
-    val phils: IndexedSeq[Var[Philosopher]] = for (i <- 0 until tableSize) yield {
+    val phils = for (i <- 0 until tableSize) yield {
       Var[Philosopher](Thinking)
     }
     val forks = for (i <- 0 until tableSize) yield {
@@ -83,10 +86,11 @@ object REScalaPhilosophers extends App {
 
   phils.foreach { philosopher =>
     philosopher.observe { state =>
-      if (state == Eating)
+      if (state == Eating) {
         Future {
           philosopher set Thinking
         }
+      }
     }
   }
 
@@ -109,6 +113,16 @@ object REScalaPhilosophers extends App {
 
   // ============================================== Thread management =======================================================
 
+  object Spawn {
+    def apply(name: String)(f: => Unit): Thread = {
+      val t = new Thread(new Runnable {
+        override def run(): Unit = f
+      }, name)
+      t.start()
+      t
+    }
+  }
+
   // ===================== STARTUP =====================
   // start simulation
   @volatile private var killed = false
@@ -116,7 +130,7 @@ object REScalaPhilosophers extends App {
   val threads = seatings.map { seating =>
     val phil = seating.philosopher
     phil ->
-      Future {
+      Spawn(seating.placeNumber.toString) {
         log("Controlling hunger on " + seating)
         while (!killed) {
           eatOnce(seating)
@@ -127,6 +141,7 @@ object REScalaPhilosophers extends App {
 
   // ===================== SHUTDOWN =====================
   // wait for keyboard input
+  Thread.sleep(3000)
   System.in.read()
 
   // kill all philosophers
@@ -134,13 +149,10 @@ object REScalaPhilosophers extends App {
   killed = true
 
   // collect forked threads to check termination
-  threads.foreach {
-    case (phil, thread) => try {
-      import scala.language.postfixOps
-      Await.ready(thread, 50 millis)
-      log(phil + " terminated.")
-    } catch {
-      case te: TimeoutException => log(phil + " failed to terminate!")
-    }
+  threads.foreach { case (phil, thread) =>
+    import scala.language.postfixOps
+    thread.join(50)
+    if (!thread.isAlive) log(phil + " terminated.")
+    else log(phil + " failed to terminate!")
   }
 }
