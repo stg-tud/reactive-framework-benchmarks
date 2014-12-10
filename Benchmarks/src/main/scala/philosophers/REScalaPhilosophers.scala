@@ -1,15 +1,13 @@
 package philosophers
 
-import java.util.concurrent.{LinkedBlockingQueue, TimeUnit, ThreadPoolExecutor, TimeoutException}
+import java.util.concurrent.{LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
 
 import rescala.Signals.lift
-import rescala.{Var, Signal, Observe, DependentUpdate}
 import rescala.graph.Pulsing
 import rescala.turns.Engines.pessimistic
+import rescala.{DependentUpdate, Observe, Signal, Var}
 
-import scala.collection.immutable.IndexedSeq
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Await, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 
 
