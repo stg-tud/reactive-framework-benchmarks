@@ -36,7 +36,7 @@ trait ReactiveInterface {
 
 object ReactiveInterface {
 
-  def rescalaInstance(implicit engine: rescala.propagation.Engine = rescala.propagation.Engines.default): ReactiveInterface = {
+  def rescalaInstance(implicit engine: rescala.turns.Engine = rescala.turns.Engines.default): ReactiveInterface = {
     import rescala._
     new ReactiveInterface {
 
