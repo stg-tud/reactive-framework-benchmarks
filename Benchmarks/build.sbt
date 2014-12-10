@@ -39,7 +39,7 @@ scalacOptions ++= (
     "-Xfatal-warnings" ::
     "-Yno-adapted-args" ::
     "-Ywarn-numeric-widen" ::
-    "-Ywarn-value-discard" ::
+    //"-Ywarn-value-discard" ::
     "-Ywarn-dead-code" ::
     //"-Yno-predef" ::
     //"-Yno-imports" ::
