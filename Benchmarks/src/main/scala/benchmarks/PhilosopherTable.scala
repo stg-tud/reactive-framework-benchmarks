@@ -74,18 +74,6 @@ class PhilosopherTable(philosopherCount: Int)(implicit val engine: Engine[Turn])
 
   def eatOnce(seating: Seating) = repeatUntilTrue(tryEat(seating))
 
-  // ============================================== Logging =======================================================
-
-  def log(msg: String): Unit = {
-    println("[" + Thread.currentThread().getName + " @ " + System.currentTimeMillis() + "] " + msg)
-  }
-
-  def log[A](reactive: Pulsing[A]): Unit = {
-    Observe(reactive) { value =>
-      log(reactive + " now " + value)
-    }
-  }
-
 }
 
 object PhilosopherTable {
