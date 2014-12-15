@@ -13,8 +13,8 @@ import scala.util.Random
 @BenchmarkMode(Array(Mode.Throughput))
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 10, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
-@Measurement(iterations = 10, time = 3000, timeUnit = TimeUnit.MILLISECONDS)
-@Fork(3)
+@Measurement(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
+@Fork(2)
 class PhilosopherCompetition {
 
   @Benchmark
@@ -36,7 +36,7 @@ class Competition {
   @Param(Array("pessimistic", "synchron"))
   var engineName: String = _
 
-  @Param(Array("32"))
+  @Param(Array("32", "64", "128", "256"))
   var philosophers: Int = _
 
   var table: PhilosopherTable = _
