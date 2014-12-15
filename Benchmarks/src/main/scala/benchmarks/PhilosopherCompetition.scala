@@ -12,23 +12,30 @@ import scala.util.Random
 
 @BenchmarkMode(Array(Mode.Throughput))
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 10, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
+@Warmup(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Measurement(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
-@Fork(2)
+@Fork(1)
 class PhilosopherCompetition {
 
   @Benchmark
-  def eat(comp: Competition, params: ThreadParams): Unit = {
+  def eat(comp: Competition, params: ThreadParams, work: Workload): Unit = {
     val myBlock = comp.blocks(params.getThreadIndex % comp.blocks.length)
     val seating = myBlock(Random.nextInt(myBlock.length))
     comp.table.eatOnce(seating)
     seating.philosopher.set(Thinking)(comp.table.engine)
   }
 
-  //@Benchmark
-  def emptySync(comp: Competition): Unit = comp.synchronized(Blackhole.consumeCPU(0))
+  @Benchmark
+  @BenchmarkMode(Array(Mode.AverageTime))
+  @OutputTimeUnit(TimeUnit.MILLISECONDS)
+  def reference(work: Workload): Unit = Blackhole.consumeCPU(work.work)
 }
 
+@State(Scope.Benchmark)
+class Workload {
+  @Param(Array("10000", "100000", "1000000"))
+  var work: Long = _
+}
 
 @State(Scope.Benchmark)
 class Competition {
@@ -36,16 +43,17 @@ class Competition {
   @Param(Array("pessimistic", "synchron"))
   var engineName: String = _
 
-  @Param(Array("32", "64", "128", "256"))
+  @Param(Array("32", "64", "128", "256", "512", "1024"))
   var philosophers: Int = _
+
 
   var table: PhilosopherTable = _
 
   var blocks: Array[Array[Seating]] = _
 
   @Setup
-  def setup(params: BenchmarkParams) = {
-    table = new PhilosopherTable(philosophers)(Engines.byName(engineName))
+  def setup(params: BenchmarkParams, work: Workload) = {
+    table = new PhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
     blocks = deal(table.seatings.toList, List.fill(params.getThreads)(Nil)).map(_.toArray).toArray
   }
 

@@ -2,13 +2,14 @@ package benchmarks
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import org.openjdk.jmh.infra.Blackhole
 import rescala.Signals.lift
 import rescala.turns.{Engine, Turn}
 import rescala.{Signal, Var}
 
 import scala.annotation.tailrec
 
-class PhilosopherTable(philosopherCount: Int)(implicit val engine: Engine[Turn]) {
+class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: Engine[Turn]) {
 
   import benchmarks.PhilosopherTable._
 
@@ -18,7 +19,10 @@ class PhilosopherTable(philosopherCount: Int)(implicit val engine: Engine[Turn])
 
   seatings.foreach { seating =>
     seating.vision.observe { state =>
-      if (state == Eating) eaten.incrementAndGet()
+      if (state == Eating) {
+        Blackhole.consumeCPU(work)
+        eaten.incrementAndGet()
+      }
     }
   }
 

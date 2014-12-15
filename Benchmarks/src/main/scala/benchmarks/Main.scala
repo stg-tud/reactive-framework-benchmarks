@@ -13,6 +13,7 @@ object Main {
     val opt: Options = new OptionsBuilder()
       .include(classOf[PhilosopherCompetition].getSimpleName)
       .threads(n)
+      .syncIterations(false)
       .build()
 
     new Runner(opt).run()
