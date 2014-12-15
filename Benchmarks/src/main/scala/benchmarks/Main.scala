@@ -8,7 +8,7 @@ import org.openjdk.jmh.runner.options.{OptionsBuilder, Options}
 object Main {
 
   def main(args: Array[String]): Unit = {
-    for(n <- List(1,2,4/*,8,12,16,20,24,28,32,36,40,44,48,52,56,60,64*/)) runWithThreads(n)
+    for(n <- List(/*1,2,4,*/8/*,12,16,20,24,28,32,36,40,44,48,52,56,60,64*/)) runWithThreads(n)
   }
 
   def runWithThreads(n: Int): Unit = {

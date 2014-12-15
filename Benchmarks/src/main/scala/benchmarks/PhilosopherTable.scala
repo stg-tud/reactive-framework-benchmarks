@@ -18,11 +18,11 @@ class PhilosopherTable(philosopherCount: Int)(implicit val engine: Engine[Turn])
 
   val seatings = createTable(philosopherCount)
 
-  seatings.foreach { seating =>
-    seating.vision.observe{ state =>
-      if (state == Eating) Blackhole.consumeCPU(2000)
-    }
-  }
+//  seatings.foreach { seating =>
+//    seating.vision.observe{ state =>
+//      if (state == Eating) Thread.sleep(100)
+//    }
+//  }
 
 
   def calcFork(leftName: String, rightName: String)(leftState: Philosopher, rightState: Philosopher): Fork =
@@ -121,7 +121,7 @@ object PhilosopherTable {
   case class Seating(placeNumber: Int, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], vision: Signal[Vision])
 
 
-  @annotation.tailrec // unrolled into loop by compiler
+  @tailrec // unrolled into loop by compiler
   final def repeatUntilTrue(op: => Boolean): Unit = if (!op) repeatUntilTrue(op)
 
 

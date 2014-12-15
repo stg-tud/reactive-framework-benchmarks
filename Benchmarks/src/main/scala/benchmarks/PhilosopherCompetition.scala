@@ -35,7 +35,7 @@ class Competition {
   @Param(Array("pessimistic", "synchron"))
   var engineName: String = _
 
-  @Param(Array("16"))
+  @Param(Array("32"))
   var philosophers: Int = _
 
   var table: PhilosopherTable = _
@@ -47,6 +47,9 @@ class Competition {
     table = new PhilosopherTable(philosophers)(Engines.byName(engineName))
     blocks = deal(table.seatings.toList, List.fill(params.getThreads)(Nil)).map(_.toArray).toArray
   }
+
+  @Setup(Level.Iteration)
+  def cleanEating(): Unit = table.seatings.foreach(_.philosopher.set(Thinking)(table.engine))
 
   @tailrec
   final def deal[A](deck: List[A], hands: List[List[A]]): List[List[A]] = deck match {
