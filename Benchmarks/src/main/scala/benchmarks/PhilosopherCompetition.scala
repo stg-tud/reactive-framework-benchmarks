@@ -14,8 +14,8 @@ import rescala.turns.Engines
 class PhilosopherCompetition {
   
   @Benchmark
-  def goooooo(pt: Table): Unit = {
-    pt.pt.run(4, 10000)
+  def goooooo(table: Table): Unit = {
+    table.table.run(4, 10000)
   }
 }
 
@@ -23,7 +23,18 @@ class PhilosopherCompetition {
 @State(Scope.Benchmark)
 class Table {
 
-  val pt = new PhilosopherTable(32)(Engines.synchron)
+  @Param(Array("pessimistic", "synchron", "unmanaged"))
+  var engineName: String = _
+
+  @Param(Array("3", "10", "15", "26", "32"))
+  var philosophers: Int = _
+
+  var table: PhilosopherTable = _
+
+  @Setup
+  def setup() = {
+    table = new PhilosopherTable(philosophers)(Engines.byName(engineName))
+  }
 
 //  @Setup(Level.Trial)
 //  def setup() = {
