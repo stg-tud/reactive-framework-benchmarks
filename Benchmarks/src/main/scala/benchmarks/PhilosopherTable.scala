@@ -34,7 +34,7 @@ class PhilosopherTable(philosopherCount: Int)(implicit engine: Engine[Turn]) {
       val random = new Random
       val myBlock = blocks(threadNum).toArray
       Spawn("Worker-" + myBlock.map(seating => names(seating.placeNumber)).mkString("-")) {
-        while (remainingFood.getAndDecrement() > 0) {
+        if (myBlock.nonEmpty) while (remainingFood.getAndDecrement() > 0) {
           val seating = myBlock(random.nextInt(myBlock.length))
           eatOnce(seating)
           seating.philosopher.set(Thinking)
