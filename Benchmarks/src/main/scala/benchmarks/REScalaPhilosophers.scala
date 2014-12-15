@@ -1,22 +1,19 @@
 package benchmarks
 
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
 
 import rescala.Signals.lift
 import rescala.graph.Globals.named
 import rescala.graph.Pulsing
-import rescala.synchronization.SyncUtil
-import rescala.turns.{Engine, Turn, Ticket}
+import rescala.turns.{Engine, Turn}
 import rescala.{Observe, Signal, Var}
 
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
 class REScalaPhilosophers(philosopherCount: Int)(implicit engine: Engine[Turn]) {
 
-  def run(threadCount: Int, eatGoal: Int): Unit = {
+  def run(threadCount: Int, foodCount: Int): Unit = {
 
     // clean leftovers
     seatings.foreach(_.philosopher.set(Thinking))
@@ -31,35 +28,23 @@ class REScalaPhilosophers(philosopherCount: Int)(implicit engine: Engine[Turn]) 
 
     // ===================== STARTUP =====================
     // start simulation
-    @volatile var killed = false
-    log("Starting simulation. Press <Enter> to terminate!")
+    val remainingFood = new AtomicInteger(foodCount)
+    
     val threads = for (threadNum <- 0 until threadCount) yield {
       val random = new Random
       val myBlock = blocks(threadNum).toArray
       Spawn("Worker-" + myBlock.map(seating => names(seating.placeNumber)).mkString("-")) {
-        log("Controlling hunger on " + myBlock)
-        while (!killed) {
+        while (remainingFood.getAndDecrement() > 0) {
           val seating = myBlock(random.nextInt(myBlock.length))
           eatOnce(seating)
           seating.philosopher.set(Thinking)
         }
-        log("dies.")
       }
     }
 
-    // ===================== SHUTDOWN =====================
-    // wait for keyboard input
-    System.in.read()
-
-    // kill all philosophers
-    log("Received Termination Signal, Terminating...")
-    killed = true
-
     // collect forked threads to check termination
     threads.foreach { thread =>
-        thread.join(50)
-        if (!thread.isAlive) log(thread.getName() + " terminated.")
-        else log(thread.getName() + " failed to terminate!")
+        thread.join()
     }
   }
 
