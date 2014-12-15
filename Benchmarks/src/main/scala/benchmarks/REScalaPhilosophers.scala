@@ -10,75 +10,38 @@ import rescala.synchronization.SyncUtil
 import rescala.turns.{Engine, Turn, Ticket}
 import rescala.{Observe, Signal, Var}
 
+import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
-object REScalaPhilosophers {
+class REScalaPhilosophers(philosopherCount: Int)(implicit engine: Engine[Turn]) {
 
-  def run()(implicit engine: Engine[Turn]): Unit = {
+  def run(threadCount: Int, eatGoal: Int): Unit = {
 
+    // clean leftovers
+    seatings.foreach(_.philosopher.set(Thinking))
 
-    val threadCount = 16
-    val sizeFactor = 2
-
-    val size = threadCount * sizeFactor
-    if (size >= names.size) throw new IllegalArgumentException("Not enough names!")
-
-    implicit val pool: ExecutionContext = ExecutionContext.fromExecutor(new ThreadPoolExecutor(
-      0, size * 2 + 5, 1L, TimeUnit.SECONDS, new java.util.concurrent.SynchronousQueue[Runnable]))
-
-
-
-    val seatings = createTable(size)
-    val seatingBlocks = seatings.sliding(threadCount, threadCount).toList.transpose
-
-    val eaten = new AtomicInteger(0)
-    @volatile var turns = 0
-    @volatile var lastTime = System.nanoTime()
-
-    seatings.foreach { seating =>
-      seating.vision.observe { state =>
-        if (state == Eating) eaten.synchronized {
-          val eats = eaten.incrementAndGet()
-          if (eats % 1000 == 0) {
-            val time = System.nanoTime()
-            val cturns = SyncUtil.counter.get()
-            log(s"eaten: $eats in ${ (time - lastTime) / 1000000 }ms (${ (cturns - turns) / 1000.0 }tpe)")
-            lastTime = time
-            turns = cturns
-          }
-        }
-      }
+    @tailrec
+    def deal[A](deck: List[A], hands: List[List[A]]): List[List[A]] = deck match {
+      case Nil => hands
+      case card :: rest => deal(rest, hands.tail :+ (card :: hands.head))
     }
 
-    // ============================================ Runtime Behavior  =========================================================
-
-    seatings foreach {
-      case seating@Seating(i, philosopher, _, _, vision) =>
-        named(s"think-${ names(i) }")(vision.observe { state =>
-          if (state == Eating) {
-            Future {
-              philosopher set Thinking
-            }
-          }
-        })
-    }
-
-
-    // ============================================== Thread management =======================================================
-
+    val blocks = deal(seatings.toList, List.fill(threadCount)(Nil))
 
     // ===================== STARTUP =====================
     // start simulation
     @volatile var killed = false
     log("Starting simulation. Press <Enter> to terminate!")
     val threads = for (threadNum <- 0 until threadCount) yield {
-      val myBlock = seatingBlocks(threadNum)
       val random = new Random
+      val myBlock = blocks(threadNum).toArray
       Spawn("Worker-" + myBlock.map(seating => names(seating.placeNumber)).mkString("-")) {
         log("Controlling hunger on " + myBlock)
-        /*if(seating.placeNumber % 2 != 0)*/ while (!killed) {
-          eatOnce(myBlock(random.nextInt(sizeFactor)))
+        while (!killed) {
+          val seating = myBlock(random.nextInt(myBlock.length))
+          eatOnce(seating)
+          seating.philosopher.set(Thinking)
         }
         log("dies.")
       }
@@ -114,7 +77,7 @@ object REScalaPhilosophers {
   def log(msg: String): Unit = {
     println("[" + Thread.currentThread().getName + " @ " + System.currentTimeMillis() + "] " + msg)
   }
-  def log[A](reactive: Pulsing[A])(implicit ticket: Ticket): Unit = {
+  def log[A](reactive: Pulsing[A]): Unit = {
     Observe(reactive) { value =>
       log(reactive + " now " + value)
     }
@@ -154,7 +117,7 @@ object REScalaPhilosophers {
 
   case class Seating(placeNumber: Int, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], vision: Signal[Vision])
 
-  def createTable(tableSize: Int)(implicit ticket: Ticket): Seq[Seating] = {
+  def createTable(tableSize: Int): Seq[Seating] = {
     def mod(n: Int): Int = (n + tableSize) % tableSize
 
     val phils = for (i <- 0 until tableSize) yield named(s"Phil-${ names(i) }")(Var[Philosopher](Thinking))
@@ -174,11 +137,13 @@ object REScalaPhilosophers {
     }
   }
 
+  val seatings = createTable(philosopherCount)
+
 
   @annotation.tailrec // unrolled into loop by compiler
-  def repeatUntilTrue(op: => Boolean): Unit = if (!op) repeatUntilTrue(op)
+  final def repeatUntilTrue(op: => Boolean): Unit = if (!op) repeatUntilTrue(op)
 
-  def tryEat(seating: Seating)(implicit engine: Engine[Turn]): Boolean =
+  def tryEat(seating: Seating): Boolean =
     engine.plan(seating.philosopher) { turn =>
       if (seating.vision(turn) == Ready) {
         seating.philosopher.admit(Hungry)(turn)
