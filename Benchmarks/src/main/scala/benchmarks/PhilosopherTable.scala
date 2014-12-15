@@ -2,15 +2,11 @@ package benchmarks
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.openjdk.jmh.infra.Blackhole
 import rescala.Signals.lift
-import rescala.graph.Globals.named
-import rescala.graph.Pulsing
 import rescala.turns.{Engine, Turn}
-import rescala.{Observe, Signal, Var}
+import rescala.{Signal, Var}
 
 import scala.annotation.tailrec
-import scala.util.Random
 
 class PhilosopherTable(philosopherCount: Int)(implicit val engine: Engine[Turn]) {
 
