@@ -33,7 +33,7 @@ class PhilosopherCompetition {
 
 @State(Scope.Benchmark)
 class Workload {
-  @Param(Array("10000", "100000", "1000000"))
+  @Param(Array("0", "10000", "100000", "1000000"))
   var work: Long = _
 }
 
