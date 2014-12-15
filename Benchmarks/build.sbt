@@ -48,8 +48,8 @@ scalacOptions ++= (
 javaOptions ++= (
   "-server" ::
     //"-verbose:gc" ::
-    //"-Xms512M" ::
-    //"-Xmx512M" ::
+    "-Xms512M" ::
+    "-Xmx512M" ::
     //"-XX:NewRatio=1" ::
     //"-XX:CompileThreshold=100" ::
     //"-XX:+PrintCompilation" ::
