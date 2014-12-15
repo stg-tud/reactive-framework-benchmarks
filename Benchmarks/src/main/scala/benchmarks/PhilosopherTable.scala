@@ -18,11 +18,13 @@ class PhilosopherTable(philosopherCount: Int)(implicit val engine: Engine[Turn])
 
   val seatings = createTable(philosopherCount)
 
-//  seatings.foreach { seating =>
-//    seating.vision.observe{ state =>
-//      if (state == Eating) Thread.sleep(100)
-//    }
-//  }
+  val eaten = new AtomicInteger(0)
+
+  seatings.foreach { seating =>
+    seating.vision.observe{ state =>
+      if (state == Eating) eaten.incrementAndGet()
+    }
+  }
 
 
   def calcFork(leftName: String, rightName: String)(leftState: Philosopher, rightState: Philosopher): Fork =

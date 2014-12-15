@@ -1,22 +1,20 @@
 package benchmarks
 
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
-import org.openjdk.jmh.annotations._
-import org.openjdk.jmh.infra.{BenchmarkParams, ThreadParams}
-import rescala.turns.Engines
 import benchmarks.PhilosopherTable.{Seating, Thinking}
-
+import org.openjdk.jmh.annotations._
+import org.openjdk.jmh.infra.{BenchmarkParams, Blackhole, ThreadParams}
+import rescala.turns.Engines
 
 import scala.annotation.tailrec
 import scala.util.Random
 
 @BenchmarkMode(Array(Mode.Throughput))
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-@Warmup(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
-@Measurement(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
-@Fork(1)
+@OutputTimeUnit(TimeUnit.SECONDS)
+@Warmup(iterations = 10, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
+@Measurement(iterations = 10, time = 3000, timeUnit = TimeUnit.MILLISECONDS)
+@Fork(3)
 class PhilosopherCompetition {
 
   @Benchmark
@@ -26,6 +24,9 @@ class PhilosopherCompetition {
     comp.table.eatOnce(seating)
     seating.philosopher.set(Thinking)(comp.table.engine)
   }
+
+  //@Benchmark
+  def emptySync(comp: Competition): Unit = comp.synchronized(Blackhole.consumeCPU(0))
 }
 
 
@@ -48,8 +49,12 @@ class Competition {
     blocks = deal(table.seatings.toList, List.fill(params.getThreads)(Nil)).map(_.toArray).toArray
   }
 
-  @Setup(Level.Iteration)
-  def cleanEating(): Unit = table.seatings.foreach(_.philosopher.set(Thinking)(table.engine))
+  @TearDown(Level.Iteration)
+  def cleanEating(): Unit = {
+    print(s"actually eaten: ${table.eaten.get()} measured: ")
+    table.eaten.set(0)
+    table.seatings.foreach(_.philosopher.set(Thinking)(table.engine))
+  }
 
   @tailrec
   final def deal[A](deck: List[A], hands: List[List[A]]): List[List[A]] = deck match {
