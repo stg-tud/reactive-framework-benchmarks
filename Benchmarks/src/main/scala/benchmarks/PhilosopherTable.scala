@@ -2,6 +2,7 @@ package benchmarks
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import org.openjdk.jmh.infra.Blackhole
 import rescala.Signals.lift
 import rescala.graph.Globals.named
 import rescala.graph.Pulsing
@@ -16,6 +17,12 @@ class PhilosopherTable(philosopherCount: Int)(implicit val engine: Engine[Turn])
   import benchmarks.PhilosopherTable._
 
   val seatings = createTable(philosopherCount)
+
+  seatings.foreach { seating =>
+    seating.vision.observe{ state =>
+      if (state == Eating) Blackhole.consumeCPU(2000)
+    }
+  }
 
 
   def calcFork(leftName: String, rightName: String)(leftState: Philosopher, rightState: Philosopher): Fork =

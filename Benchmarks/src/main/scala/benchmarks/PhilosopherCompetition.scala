@@ -17,13 +17,11 @@ import scala.util.Random
 @Warmup(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Measurement(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
-@Threads(1)
 class PhilosopherCompetition {
-
 
   @Benchmark
   def eat(comp: Competition, params: ThreadParams): Unit = {
-    val myBlock = comp.blocks(params.getThreadIndex)
+    val myBlock = comp.blocks(params.getThreadIndex % comp.blocks.length)
     val seating = myBlock(Random.nextInt(myBlock.length))
     comp.table.eatOnce(seating)
     seating.philosopher.set(Thinking)(comp.table.engine)
@@ -37,7 +35,7 @@ class Competition {
   @Param(Array("pessimistic", "synchron"))
   var engineName: String = _
 
-  @Param(Array("3", "15", "32"))
+  @Param(Array("16"))
   var philosophers: Int = _
 
   var table: PhilosopherTable = _
@@ -55,12 +53,5 @@ class Competition {
     case Nil => hands
     case card :: rest => deal(rest, hands.tail :+ (card :: hands.head))
   }
-
-  //  @Setup(Level.Trial)
-  //  def setup() = {
-  //    source = RI.makeSignal(input.get())
-  //    result = source.map(1.+).map(1.+).map(1.+)
-  //
-  //  }
 
 }
