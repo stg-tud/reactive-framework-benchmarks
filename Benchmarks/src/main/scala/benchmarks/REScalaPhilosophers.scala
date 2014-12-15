@@ -7,7 +7,7 @@ import rescala.Signals.lift
 import rescala.graph.Globals.named
 import rescala.graph.Pulsing
 import rescala.synchronization.SyncUtil
-import rescala.turns.{Engine, Turn}
+import rescala.turns.{Engine, Turn, Ticket}
 import rescala.{Observe, Signal, Var}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,15 +31,6 @@ object REScalaPhilosophers {
 
     val seatings = createTable(size)
     val seatingBlocks = seatings.sliding(threadCount, threadCount).toList.transpose
-
-
-
-    //  seatings.foreach { seating =>
-    //    named(s"observePhil(${names(seating.placeNumber)})")(log(seating.philosopher))
-    //    named(s"observeFork(${names(seating.placeNumber)})")(log(seating.leftFork))
-    //    // right fork is the next guy's left fork
-    //    named(s"observeVision(${names(seating.placeNumber)})")(log(seating.vision))
-    //  }
 
     val eaten = new AtomicInteger(0)
     @volatile var turns = 0
@@ -102,9 +93,7 @@ object REScalaPhilosophers {
     killed = true
 
     // collect forked threads to check termination
-    threads.foreach {
-      case thread =>
-        import scala.language.postfixOps
+    threads.foreach { thread =>
         thread.join(50)
         if (!thread.isAlive) log(thread.getName() + " terminated.")
         else log(thread.getName() + " failed to terminate!")
@@ -125,7 +114,7 @@ object REScalaPhilosophers {
   def log(msg: String): Unit = {
     println("[" + Thread.currentThread().getName + " @ " + System.currentTimeMillis() + "] " + msg)
   }
-  def log[A](reactive: Pulsing[A]): Unit = {
+  def log[A](reactive: Pulsing[A])(implicit ticket: Ticket): Unit = {
     Observe(reactive) { value =>
       log(reactive + " now " + value)
     }
@@ -164,7 +153,8 @@ object REScalaPhilosophers {
   // ============================================ Entity Creation =========================================================
 
   case class Seating(placeNumber: Int, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], vision: Signal[Vision])
-  def createTable(tableSize: Int): Seq[Seating] = {
+
+  def createTable(tableSize: Int)(implicit ticket: Ticket): Seq[Seating] = {
     def mod(n: Int): Int = (n + tableSize) % tableSize
 
     val phils = for (i <- 0 until tableSize) yield named(s"Phil-${ names(i) }")(Var[Philosopher](Thinking))
@@ -188,8 +178,8 @@ object REScalaPhilosophers {
   @annotation.tailrec // unrolled into loop by compiler
   def repeatUntilTrue(op: => Boolean): Unit = if (!op) repeatUntilTrue(op)
 
-  def tryEat(seating: Seating) =
-    implicitly[Engine[Turn]].plan(seating.philosopher) { turn =>
+  def tryEat(seating: Seating)(implicit engine: Engine[Turn]): Boolean =
+    engine.plan(seating.philosopher) { turn =>
       if (seating.vision(turn) == Ready) {
         seating.philosopher.admit(Hungry)(turn)
         true
@@ -200,10 +190,6 @@ object REScalaPhilosophers {
       forksWereFree
     }
 
-  def eatOnce(seating: Seating) = repeatUntilTrue({
-    //    seating.vision.await(Ready)
-    tryEat(seating)
-  })
-
+  def eatOnce(seating: Seating)(implicit engine: Engine[Turn]) = repeatUntilTrue(tryEat(seating))
 
 }
