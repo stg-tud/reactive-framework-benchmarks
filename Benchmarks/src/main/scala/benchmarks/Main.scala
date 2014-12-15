@@ -6,7 +6,7 @@ import org.openjdk.jmh.runner.options.{Options, OptionsBuilder}
 object Main {
 
   def main(args: Array[String]): Unit = {
-    for(n <- Range(1,17)) runWithThreads(n)
+    for(n <- Range(args(0).toInt,args(1).toInt)) runWithThreads(n)
   }
 
   def runWithThreads(n: Int): Unit = {
