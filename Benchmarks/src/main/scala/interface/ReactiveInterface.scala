@@ -1,5 +1,7 @@
 package interface
 
+import rescala.turns.Turn
+
 import scala.collection.immutable.Seq
 import scala.language.higherKinds
 
@@ -36,7 +38,7 @@ trait ReactiveInterface {
 
 object ReactiveInterface {
 
-  def rescalaInstance(implicit engine: rescala.turns.Engine = rescala.turns.Engines.default): ReactiveInterface = {
+  def rescalaInstance(implicit engine: rescala.turns.Engine[Turn] = rescala.turns.Engines.default): ReactiveInterface = {
     import rescala._
     new ReactiveInterface {
 
@@ -49,7 +51,7 @@ object ReactiveInterface {
 
       def setSignal[V](source: Var[V])(value: V): Unit = source.set(value)
 
-      def setSignals[V](changes: (Var[V], V)*): Unit = engine.startNew { t => changes.foreach { case (s, v) => setSignal(s)(v) } }
+      def setSignals[V](changes: (Var[V], V)*): Unit = engine.planned(changes.map(_._1): _*) { t => changes.foreach { case (s, v) => setSignal(s)(v) } }
 
       def getSignal[V](sink: Signal[V]): V = sink.now
 
