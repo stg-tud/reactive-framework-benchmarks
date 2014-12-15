@@ -11,7 +11,7 @@ import rescala.{Observe, Signal, Var}
 import scala.annotation.tailrec
 import scala.util.Random
 
-class REScalaPhilosophers(philosopherCount: Int)(implicit engine: Engine[Turn]) {
+class PhilosopherTable(philosopherCount: Int)(implicit engine: Engine[Turn]) {
 
   def run(threadCount: Int, foodCount: Int): Unit = {
 
