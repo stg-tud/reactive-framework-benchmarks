@@ -31,17 +31,17 @@ class PhilosopherCompetition {
 
 @State(Scope.Benchmark)
 class Workload {
-  @Param(Array("0", "10000", "100000", "1000000"))
+  @Param(Array("0"/*, "10000", "100000", "1000000"*/))
   var work: Long = _
 }
 
 @State(Scope.Benchmark)
 class Competition {
 
-  @Param(Array("pessimistic", "spinningInit", "synchron"))
+  @Param(Array("pessimistic", "spinningInit", "synchron", "stm"))
   var engineName: String = _
 
-  @Param(Array("32", "64", "128", "256", "512", "1024"))
+  @Param(Array("16", "32", "64", "128", "256", "512", "1024", "2048"))
   var philosophers: Int = _
 
 
