@@ -26,8 +26,6 @@ class PhilosopherCompetition {
   }
 
   @Benchmark
-  @BenchmarkMode(Array(Mode.AverageTime))
-  @OutputTimeUnit(TimeUnit.MILLISECONDS)
   def reference(work: Workload): Unit = Blackhole.consumeCPU(work.work)
 }
 
