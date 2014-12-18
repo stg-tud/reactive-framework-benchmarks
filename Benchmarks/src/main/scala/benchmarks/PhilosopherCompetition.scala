@@ -38,7 +38,7 @@ class Workload {
 @State(Scope.Benchmark)
 class Competition {
 
-  @Param(Array("pessimistic", "spinningInit", "synchron", "stm"))
+  @Param(Array("yielding", "pessimistic", "spinningInit", "synchron", "stm"))
   var engineName: String = _
 
   @Param(Array("16", "32", "64", "128", "256", "512", "1024", "2048"))
