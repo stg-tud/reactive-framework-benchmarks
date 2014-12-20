@@ -22,13 +22,14 @@ object Main {
     write(runName + ".aggregate", "threads, engineName, philosophers, work, score, error, unit, layout\n")
     write(runName + ".raw", "threads, engineName, philosophers, work, score, unit, layout\n")
 
-    for (n <- parameters("threads").split(',')) runWithThreads(n.toInt, parameters)
+    for (n <- parameters("threads").split(','); m <- parameters("forks").split(',')) runWithThreads(n.toInt, m.toInt, parameters)
   }
 
-  def runWithThreads(n: Int, parameters: Map[String, String]): Unit = {
+  def runWithThreads(n: Int, m: Int, parameters: Map[String, String]): Unit = {
     val optBuilder = new OptionsBuilder()
       .include(classOf[PhilosopherCompetition].getSimpleName)
       .threads(n)
+      .forks(m)
       //.addProfiler(classOf[StackProfiler])
       .jvmArgsAppend("-Djmh.stack.lines=5")
       .syncIterations(false)

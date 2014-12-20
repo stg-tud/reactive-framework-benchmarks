@@ -21,7 +21,6 @@ class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: E
     seating.vision.observe { state =>
       if (state == Eating) {
         Blackhole.consumeCPU(work)
-        eaten.incrementAndGet()
       }
     }
   }

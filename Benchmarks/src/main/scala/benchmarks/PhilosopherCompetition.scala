@@ -20,7 +20,7 @@ class PhilosopherCompetition {
   @Benchmark
   def eat(comp: Competition, params: ThreadParams, work: Workload): Unit = {
     val myBlock = comp.blocks(params.getThreadIndex % comp.blocks.length)
-    while ({
+    while ( {
       val seating = myBlock(Random.nextInt(myBlock.length))
       val res = comp.table.tryEat(seating)
       if (res) seating.philosopher.set(Thinking)(comp.table.engine)
@@ -29,13 +29,13 @@ class PhilosopherCompetition {
 
   }
 
-  //@Benchmark
+  @Benchmark
   def reference(work: Workload): Unit = Blackhole.consumeCPU(work.work)
 }
 
 @State(Scope.Benchmark)
 class Workload {
-  @Param(Array("0"/*, "10000", "100000", "1000000"*/))
+  @Param(Array("0" /*, "10000", "100000", "1000000"*/))
   var work: Long = _
 }
 
@@ -48,7 +48,7 @@ class Competition {
   @Param(Array("16", "32", "64", "128", "256", "512", "1024", "2048"))
   var philosophers: Int = _
 
-  @Param(Array("block", "alternating", "random"))
+  @Param(Array("block", "alternating", "random", "third"))
   var layout: String = _
 
 
@@ -64,13 +64,14 @@ class Competition {
         val perThread = table.seatings.size / params.getThreads
         table.seatings.sliding(perThread, perThread)
       case "alternating" => deal(table.seatings.toList, List.fill(math.min(params.getThreads, philosophers))(Nil))
+      case "third" => deal(table.seatings.sliding(3, 3).map(_.head).toList, List.fill(params.getThreads)(Nil))
       case "random" => List(table.seatings)
     }).map(_.toArray).toArray
   }
 
   @TearDown(Level.Iteration)
   def cleanEating(): Unit = {
-    print(s"actually eaten: ${table.eaten.get()} measured: ")
+    print(s"actually eaten: ${ table.eaten.get() } measured: ")
     table.eaten.set(0)
     table.seatings.foreach(_.philosopher.set(Thinking)(table.engine))
   }
