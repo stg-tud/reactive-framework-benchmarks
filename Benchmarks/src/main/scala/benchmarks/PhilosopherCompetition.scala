@@ -44,6 +44,9 @@ class Competition {
   @Param(Array("16", "32", "64", "128", "256", "512", "1024", "2048"))
   var philosophers: Int = _
 
+  @Param(Array("block", "alternating", "random"))
+  var layout: String = _
+
 
   var table: PhilosopherTable = _
 
@@ -52,7 +55,13 @@ class Competition {
   @Setup
   def setup(params: BenchmarkParams, work: Workload) = {
     table = new PhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
-    blocks = deal(table.seatings.toList, List.fill(params.getThreads)(Nil)).map(_.toArray).toArray
+    blocks = (layout match {
+      case "block" =>
+        val perThread = table.seatings.size / params.getThreads
+        table.seatings.sliding(perThread, perThread)
+      case "alternating" => deal(table.seatings.toList, List.fill(math.min(params.getThreads, philosophers))(Nil))
+      case "random" => List(table.seatings)
+    }).map(_.toArray).toArray
   }
 
   @TearDown(Level.Iteration)

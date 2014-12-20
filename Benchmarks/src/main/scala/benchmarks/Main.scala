@@ -19,18 +19,20 @@ object Main {
 
     val runName = parameters("name")
 
-    write(runName + ".aggregate", "threads, engineName, philosophers, work, score, error, unit\n")
-    write(runName + ".raw", "threads, engineName, philosophers, work, score, unit\n")
+    write(runName + ".aggregate", "threads, engineName, philosophers, work, score, error, unit, layout\n")
+    write(runName + ".raw", "threads, engineName, philosophers, work, score, unit, layout\n")
 
-    for(n <- parameters("threads").split(',')) runWithThreads(n.toInt, parameters)
+    for (n <- parameters("threads").split(',')) runWithThreads(n.toInt, parameters)
   }
 
   def runWithThreads(n: Int, parameters: Map[String, String]): Unit = {
     val optBuilder = new OptionsBuilder()
       .include(classOf[PhilosopherCompetition].getSimpleName)
       .threads(n)
+      //.addProfiler(classOf[StackProfiler])
+      .jvmArgsAppend("-Djmh.stack.lines=5")
       .syncIterations(false)
-    parameters.filterKeys(Set("engineName", "philosophers", "work")).foreach{case (k, v) => optBuilder.param(k, v.split(','): _*)}
+    parameters.filterKeys(Set("engineName", "philosophers", "work", "layout")).foreach { case (k, v) => optBuilder.param(k, v.split(','): _*) }
     parameters.get("warmupIterations").foreach(wi => optBuilder.warmupIterations(wi.toInt))
     parameters.get("warmupTime").foreach(wi => optBuilder.warmupTime(TimeValue.milliseconds(wi.toLong)))
     parameters.get("iterations").foreach(wi => optBuilder.measurementIterations(wi.toInt))
@@ -38,11 +40,17 @@ object Main {
     val opt = optBuilder.build()
 
     val runResult = new Runner(opt).run()
-    val rawData = runResult.asScala.flatMap{ rr: RunResult =>
-      rr.getBenchmarkResults.asScala.flatMap{ br: BenchmarkResult =>
-        br.getIterationResults.asScala.flatMap {ir: IterationResult =>
-          ir.getRawPrimaryResults.asScala.map{ r : Result[_] =>
-            List[Any](n, br.getParams.getParam("engineName"), br.getParams.getParam("philosophers"), br.getParams.getParam("work"), r.getScore, r.getScoreUnit)
+    val rawData = runResult.asScala.flatMap { rr: RunResult =>
+      rr.getBenchmarkResults.asScala.flatMap { br: BenchmarkResult =>
+        br.getIterationResults.asScala.flatMap { ir: IterationResult =>
+          ir.getRawPrimaryResults.asScala.map { r: Result[_] =>
+            List[Any](n,
+              br.getParams.getParam("engineName"),
+              br.getParams.getParam("philosophers"),
+              br.getParams.getParam("work"),
+              r.getScore,
+              r.getScoreUnit,
+              br.getParams.getParam("layout"))
           }
         }
       }
@@ -53,10 +61,16 @@ object Main {
 
     append(s"$runName.raw", rawData.map(_.mkString(", ")).toList)
 
-    val aggregateData = runResult.asScala.flatMap{ rr: RunResult =>
-      rr.getBenchmarkResults.asScala.map{ br: BenchmarkResult =>
-        List[Any](n, br.getParams.getParam("engineName"), br.getParams.getParam("philosophers"),
-          br.getParams.getParam("work"), br.getPrimaryResult.getScore, br.getPrimaryResult.getScoreError, br.getScoreUnit)
+    val aggregateData = runResult.asScala.flatMap { rr: RunResult =>
+      rr.getBenchmarkResults.asScala.map { br: BenchmarkResult =>
+        List[Any](n,
+          br.getParams.getParam("engineName"),
+          br.getParams.getParam("philosophers"),
+          br.getParams.getParam("work"),
+          br.getPrimaryResult.getScore,
+          br.getPrimaryResult.getScoreError,
+          br.getScoreUnit,
+          br.getParams.getParam("layout"))
       }
     }
 
