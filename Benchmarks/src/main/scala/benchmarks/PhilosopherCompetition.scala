@@ -20,12 +20,16 @@ class PhilosopherCompetition {
   @Benchmark
   def eat(comp: Competition, params: ThreadParams, work: Workload): Unit = {
     val myBlock = comp.blocks(params.getThreadIndex % comp.blocks.length)
-    val seating = myBlock(Random.nextInt(myBlock.length))
-    comp.table.eatOnce(seating)
-    seating.philosopher.set(Thinking)(comp.table.engine)
+    while ({
+      val seating = myBlock(Random.nextInt(myBlock.length))
+      val res = comp.table.tryEat(seating)
+      if (res) seating.philosopher.set(Thinking)(comp.table.engine)
+      !res
+    }) {}
+
   }
 
-  @Benchmark
+  //@Benchmark
   def reference(work: Workload): Unit = Blackhole.consumeCPU(work.work)
 }
 
