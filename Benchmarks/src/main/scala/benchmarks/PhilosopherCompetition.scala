@@ -51,6 +51,8 @@ class Competition {
   @Param(Array("block", "alternating", "random", "third"))
   var layout: String = _
 
+  @Param(Array("static", "dynamic"))
+  var tableType: String = _
 
   var table: PhilosopherTable = _
 
@@ -58,7 +60,10 @@ class Competition {
 
   @Setup
   def setup(params: BenchmarkParams, work: Workload) = {
-    table = new PhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
+    table = tableType match {
+    case "static" =>       new PhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
+    case "dynamic" => new DynamicPhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
+    }
     blocks = (layout match {
       case "block" =>
         val perThread = table.seatings.size / params.getThreads

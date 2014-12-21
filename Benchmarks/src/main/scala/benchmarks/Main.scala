@@ -33,7 +33,7 @@ object Main {
       //.addProfiler(classOf[StackProfiler])
       .jvmArgsAppend("-Djmh.stack.lines=5")
       .syncIterations(false)
-    parameters.filterKeys(Set("engineName", "philosophers", "work", "layout")).foreach { case (k, v) => optBuilder.param(k, v.split(','): _*) }
+    parameters.filterKeys(Set("engineName", "philosophers", "work", "layout", "tableType")).foreach { case (k, v) => optBuilder.param(k, v.split(','): _*) }
     parameters.get("warmupIterations").foreach(wi => optBuilder.warmupIterations(wi.toInt))
     parameters.get("warmupTime").foreach(wi => optBuilder.warmupTime(TimeValue.milliseconds(wi.toLong)))
     parameters.get("iterations").foreach(wi => optBuilder.measurementIterations(wi.toInt))
