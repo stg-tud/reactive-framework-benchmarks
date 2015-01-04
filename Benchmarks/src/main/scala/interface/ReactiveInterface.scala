@@ -57,11 +57,11 @@ object ReactiveInterface {
 
       def makeSignal[V](value: V): Var[V] = Var(value)
 
-      def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = Signals.mapping(signals: _*) { turn =>
+      def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = Signals.static(signals: _*) { turn =>
         signals.map(_.get(turn))
       }
 
-      override def combineSeq[V, R](signals: Seq[Signal[V]])(f: Seq[V] => R): Signal[R] = Signals.mapping(signals: _*) { turn =>
+      override def combineSeq[V, R](signals: Seq[Signal[V]])(f: Seq[V] => R): Signal[R] = Signals.static(signals: _*) { turn =>
         f(signals.map(_.get(turn)))
       }
 
