@@ -60,14 +60,13 @@ class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: E
 
 
   def tryEat(seating: Seating): Boolean =
-    engine.plan(seating.philosopher) { turn =>
-      if (seating.vision(turn) == Ready) {
+    implicitly[Engine[Turn]].plan(seating.philosopher) { turn =>
+      val forksWereFree = if (seating.vision(turn) == Ready) {
         seating.philosopher.admit(Hungry)(turn)
         true
       }
       else false
-    } { (turn, forksWereFree) =>
-      if (forksWereFree) assert(seating.vision(turn) == Eating)
+      turn.afterCommit(if (forksWereFree) assert(seating.vision(turn) == Eating))
       forksWereFree
     }
 
