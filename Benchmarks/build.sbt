@@ -2,7 +2,7 @@ name := "benchmarks"
 
 version := "0.0.0"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
 
 lazy val benchmarks = Project(
   id = "benchmarks",
