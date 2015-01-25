@@ -51,7 +51,7 @@ object ReactiveInterface {
 
       def setSignal[V](source: Var[V])(value: V): Unit = source.set(value)
 
-      def setSignals[V](changes: (Var[V], V)*): Unit = engine.planned(changes.map(_._1): _*) { t => changes.foreach { case (s, v) => setSignal(s)(v) } }
+      def setSignals[V](changes: (Var[V], V)*): Unit = engine.plan(changes.map(_._1): _*) { t => changes.foreach { case (s, v) => setSignal(s)(v) } }
 
       def getSignal[V](sink: Signal[V]): V = sink.now
 
@@ -81,7 +81,7 @@ object ReactiveInterface {
       override type ISignalSource[A] = Var[A]
       override type IEvent[A] = EventStream[A]
 
-      def mapSignal[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.single.map(f)
+      def mapSignal[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
 
       def setSignal[V](source: Var[V])(value: V): Unit = setSignals(source -> value)
 
@@ -91,24 +91,24 @@ object ReactiveInterface {
         tb.commit()
       }
 
-      def getSignal[V](sink: Signal[V]): V = sink.single.now
+      def getSignal[V](sink: Signal[V]): V = sink.now
 
       def makeSignal[V](value: V): Var[V] = Var(value)
 
       def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = atomic { tx =>
         new reactive.signals.impl.FunctionalSignal({
-          inTx => signals.map { _.now(inTx) }
-        }, signals, tx)
+          inTx => signals.map { _.transactional.now(inTx) }
+        }, signals.toSet, tx)
       }
 
       override def combineSeq[V, R](signals: Seq[Signal[V]])(f: Seq[V] => R): Signal[R] = atomic { tx =>
         new reactive.signals.impl.FunctionalSignal({
-          inTx => f(signals.map(_.now(inTx)))
-        }, signals, tx)
+          inTx => f(signals.map(_.transactional.now(inTx)))
+        }, signals.toSet, tx)
       }
 
-      override def combine2[A1, A2, R](s1: Signal[A1], s2: Signal[A2])(f: (A1, A2) => R): Signal[R] = reactive.Lift.single.signal2(f)(s1, s2)
-      override def combine3[A1, A2, A3, R](s1: Signal[A1], s2: Signal[A2], s3: Signal[A3])(f: (A1, A2, A3) => R): Signal[R] = reactive.Lift.single.signal3(f)(s1, s2, s3)
+      override def combine2[A1, A2, R](s1: Signal[A1], s2: Signal[A2])(f: (A1, A2) => R): Signal[R] = reactive.Lift.signal2(f)(s1, s2)
+      override def combine3[A1, A2, A3, R](s1: Signal[A1], s2: Signal[A2], s3: Signal[A3])(f: (A1, A2, A3) => R): Signal[R] = reactive.Lift.signal3(f)(s1, s2, s3)
     }
   }
 
