@@ -1,6 +1,6 @@
-package benchmarks
+package benchmarks.philosophers
 
-import benchmarks.PhilosopherTable._
+import benchmarks.philosophers.PhilosopherTable._
 import rescala.turns.{Engine, Turn}
 import rescala.{Signals, Var}
 

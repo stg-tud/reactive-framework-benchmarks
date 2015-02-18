@@ -3,6 +3,7 @@ package benchmarks
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths, StandardOpenOption}
 
+import benchmarks.philosophers.PhilosopherCompetition
 import org.openjdk.jmh.results.{BenchmarkResult, IterationResult, Result, RunResult}
 import org.openjdk.jmh.runner.Runner
 import org.openjdk.jmh.runner.options.{OptionsBuilder, TimeValue}

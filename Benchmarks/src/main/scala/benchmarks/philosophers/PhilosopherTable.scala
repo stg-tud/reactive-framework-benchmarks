@@ -1,7 +1,8 @@
-package benchmarks
+package benchmarks.philosophers
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import benchmarks.philosophers.PhilosopherTable._
 import org.openjdk.jmh.infra.Blackhole
 import rescala.Signals.lift
 import rescala.graph.Committable
@@ -11,8 +12,6 @@ import rescala.{Signal, Var}
 import scala.annotation.tailrec
 
 class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: Engine[Turn]) {
-
-  import benchmarks.PhilosopherTable._
 
   val seatings = createTable(philosopherCount)
 

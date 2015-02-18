@@ -1,8 +1,8 @@
-package benchmarks
+package benchmarks.philosophers
 
 import java.util.concurrent.TimeUnit
 
-import benchmarks.PhilosopherTable.{Seating, Thinking}
+import benchmarks.philosophers.PhilosopherTable.{Seating, Thinking}
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.{BenchmarkParams, Blackhole, ThreadParams}
 import rescala.turns.Engines
