@@ -1,3 +1,3 @@
 logLevel := Level.Warn
 
-addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.1.8")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.1.11")
