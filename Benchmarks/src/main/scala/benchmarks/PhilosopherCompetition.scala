@@ -61,8 +61,8 @@ class Competition {
   @Setup
   def setup(params: BenchmarkParams, work: Workload) = {
     table = tableType match {
-    case "static" =>       new PhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
-    case "dynamic" => new DynamicPhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
+      case "static" => new PhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
+      case "dynamic" => new DynamicPhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
     }
     blocks = (layout match {
       case "block" =>

@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import org.openjdk.jmh.infra.Blackhole
 import rescala.Signals.lift
+import rescala.graph.Committable
 import rescala.turns.{Engine, Turn}
 import rescala.{Signal, Var}
 
@@ -66,7 +67,10 @@ class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: E
         true
       }
       else false
-      turn.afterCommit(if (forksWereFree) assert(seating.vision(turn) == Eating))
+      turn.plan(new Committable {
+        override def commit(implicit turn: Turn): Unit = if (forksWereFree) assert(seating.vision(turn) == Eating)
+        override def release(implicit turn: Turn): Unit = ()
+      })
       forksWereFree
     }
 
