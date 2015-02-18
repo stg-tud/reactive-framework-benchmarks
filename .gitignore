@@ -2,3 +2,4 @@
 target/
 Benchmarks/jmh.out
 Benchmarks/results/
+results/
