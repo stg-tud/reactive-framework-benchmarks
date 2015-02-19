@@ -1,10 +1,11 @@
 package benchmarks.grid
 
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 import benchmarks.Util
 import interface.ReactiveInterface
-import org.openjdk.jmh.annotations.{Benchmark, Mode, BenchmarkMode, Param, Scope, State, Level, Setup}
+import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.{BenchmarkParams, ThreadParams}
 
 import scala.util.Random
@@ -12,7 +13,7 @@ import scala.util.Random
 @State(Scope.Benchmark)
 class PrimState {
 
-  @Param(Array("REScala", "SIDUP", "scala.react", "scala.rx"))
+  @Param(Array("REScala", "REScalaSTM", "REScalaSync", "SIDUP", "scala.react", "scala.rx"))
   var riname: String = _
   
   lazy val RI: ReactiveInterface = Util.getRI(riname)
@@ -43,6 +44,11 @@ class PrimState {
 }
 
 @BenchmarkMode(Array(Mode.Throughput))
+@OutputTimeUnit(TimeUnit.SECONDS)
+@Warmup(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
+@Measurement(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
+@Fork(1)
+@Threads(2)
 class Bench {
   @Benchmark
   def primGrid(ps: PrimState, params: ThreadParams) = {

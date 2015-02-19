@@ -7,7 +7,9 @@ import scala.annotation.tailrec
 
 object Util {
   def getRI(name: String): ReactiveInterface = name match {
-    case "REScala" => interface.ReactiveInterface.rescalaInstance
+    case "REScala" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.spinningInit)
+    case "REScalaSTM" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.STM)
+    case "REScalaSync" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.synchron)
     case "SIDUP" => interface.ReactiveInterface.sidup
     case "scala.react" => ReactiveInterface.scalaReact()
     case "scala.rx" => ReactiveInterface.scalaRx
