@@ -1,15 +1,12 @@
-package benchmarks
+package benchmarks.simple
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
+import benchmarks.GetRI
 import interface.ReactiveInterface
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
-import org.openjdk.jmh.runner.Runner
-import org.openjdk.jmh.runner.options.{OptionsBuilder, Options}
-import rescala.signals._
-
 
 
 abstract class SomeState {
@@ -51,7 +48,7 @@ class SharedState extends SomeState {
 @Measurement(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
 @Threads(8)
-class SimpleMapping {
+class Mapping {
 
   @Benchmark
   def local(bh: Blackhole, state: LocalState) = {

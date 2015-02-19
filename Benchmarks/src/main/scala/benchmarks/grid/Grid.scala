@@ -1,4 +1,4 @@
-package benchmarks
+package benchmarks.grid
 
 import interface.ReactiveInterface
 
@@ -7,7 +7,7 @@ import scala.collection.mutable
 
 
 case class Pos(x: Int, y: Int) {
-  def inBounds(target: Pos) = 0 <= x && 0 <= y && x < target.x && y < target.y
+  def inBounds(target: Pos) = 0 < x && 0 < y && x <= target.x && y <= target.y
 }
 
 class Grid(val RI: ReactiveInterface, size: Pos, connections: Pos => List[Pos]) {
@@ -24,7 +24,7 @@ class Grid(val RI: ReactiveInterface, size: Pos, connections: Pos => List[Pos]) 
     Range(1, size.y).foreach { y =>
       r(y) = mutable.ArrayBuffer()
       Range(0, size.x).foreach { x =>
-        val positions = connections(Pos(x, y)).filter(_.inBounds(Pos(x+1, y+1)))
+        val positions = connections(Pos(x, y)).filter(_.inBounds(Pos(x, y)))
         val dependencies = positions.map(p => r(p.y)(p.x))
         r(y) += RI.combineSeq(dependencies)(_.mkString(", "))
       }
