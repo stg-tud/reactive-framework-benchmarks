@@ -33,10 +33,7 @@ class PrimState {
 
   @Setup(Level.Trial)
   def setup(params: BenchmarkParams) = {
-    grid = new Grid(RI, Pos(sources, depth), p => {
-      val pred = p.copy(y = p.y - 1)
-      pred :: (if (p.x % p.y == 0) List(p.copy(x = p.x - p.y)) else Nil)
-    })
+    grid = new Grid(RI, Pos(sources, depth), Grid.prim)
 
     blocks = Util.deal(grid.sources.toList, math.min(params.getThreads, sources))
       .map(_.map(_.asInstanceOf[RI.IVar[String]])).map(_.toIndexedSeq).toIndexedSeq

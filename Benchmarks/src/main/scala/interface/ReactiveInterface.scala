@@ -217,7 +217,7 @@ object ReactiveInterface {
     override def setVars[V](changes: (IVar[V], V)*): Unit = ???
     override def mapSignal[I, O](signal: ISignal[I])(f: (I) => O): ISignal[O] = comb(signal)
     override def getSignal[V](sink: ISignal[V]): V = ???
-    override def makeVar[V](value: V): IVar[V] = {index += 1; index}
+    override def makeVar[V](value: V): IVar[V] = {index += 1; lines ::= s"$index [shape=triangle];"; index}
     override def combineSeq[V, R](signals: Seq[ISignal[V]])(f: (Seq[V]) => R): ISignal[R] = comb(signals: _*)
     override def combine3[A1, A2, A3, R](s1: ISignal[A1], s2: ISignal[A2], s3: ISignal[A3])(f: (A1, A2, A3) => R): ISignal[R] = comb(s1,s2,s3)
     override def combine2[A1, A2, R](s1: ISignal[A1], s2: ISignal[A2])(f: (A1, A2) => R): ISignal[R] =  comb(s1,s2)

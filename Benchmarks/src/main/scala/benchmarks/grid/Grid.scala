@@ -7,7 +7,7 @@ import scala.collection.mutable
 
 
 case class Pos(x: Int, y: Int) {
-  def inBounds(target: Pos) = 0 <= x && 0 <= y && x <= target.x && y <= target.y
+  def inBounds(target: Pos) = 0 < x && 0 <= y && x <= target.x && y <= target.y
 }
 
 class Grid(val RI: ReactiveInterface, size: Pos, connections: Pos => List[Pos]) {
@@ -24,12 +24,23 @@ class Grid(val RI: ReactiveInterface, size: Pos, connections: Pos => List[Pos]) 
     Range(1, size.y).foreach { y =>
       val row: Row = mutable.ArrayBuffer()
       r += row
-      Range(0, size.x).foreach { x =>
+      Range.inclusive(1, size.x).foreach { x =>
         val positions = connections(Pos(x, y)).filter(_.inBounds(Pos(x, y)))
-        val dependencies = positions.map(p => r(p.y)(p.x))
+        val dependencies = positions.map(p => r(p.y)(p.x-1))
         row += RI.combineSeq(dependencies)(_.mkString(", "))
       }
     }
     r
+  }
+}
+
+object Grid {
+  def prim(p: Pos): List[Pos] = {
+    val below = p.copy(y = p.y - 1)
+    below :: {
+      val diff = p.x - p.y
+      if (diff == 0) Nil
+      else if (p.x % diff == 0) List(p.copy(x = diff))
+      else Nil}
   }
 }
