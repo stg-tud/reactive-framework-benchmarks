@@ -2,6 +2,8 @@ package benchmarks.philosophers
 
 import java.util.concurrent.TimeUnit
 
+import benchmarks.Util
+import benchmarks.Util.deal
 import benchmarks.philosophers.PhilosopherTable.{Seating, Thinking}
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.{BenchmarkParams, Blackhole, ThreadParams}
@@ -68,8 +70,8 @@ class Competition {
       case "block" =>
         val perThread = table.seatings.size / params.getThreads
         table.seatings.sliding(perThread, perThread)
-      case "alternating" => deal(table.seatings.toList, List.fill(math.min(params.getThreads, philosophers))(Nil))
-      case "third" => deal(table.seatings.sliding(3, 3).map(_.head).toList, List.fill(params.getThreads)(Nil))
+      case "alternating" => deal(table.seatings.toList,math.min(params.getThreads, philosophers))
+      case "third" => deal(table.seatings.sliding(3, 3).map(_.head).toList, params.getThreads)
       case "random" => List(table.seatings)
     }).map(_.toArray).toArray
   }
@@ -79,12 +81,6 @@ class Competition {
     print(s"actually eaten: ${ table.eaten.get() } measured: ")
     table.eaten.set(0)
     table.seatings.foreach(_.philosopher.set(Thinking)(table.engine))
-  }
-
-  @tailrec
-  final def deal[A](deck: List[A], hands: List[List[A]]): List[List[A]] = deck match {
-    case Nil => hands
-    case card :: rest => deal(rest, hands.tail :+ (card :: hands.head))
   }
 
 }

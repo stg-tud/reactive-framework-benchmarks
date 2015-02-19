@@ -3,7 +3,7 @@ package benchmarks.simple
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-import benchmarks.GetRI
+import benchmarks.Util
 import interface.ReactiveInterface
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
@@ -13,7 +13,7 @@ abstract class SomeState {
 
   def riname: String
 
-  lazy val RI: ReactiveInterface = GetRI(riname)
+  lazy val RI: ReactiveInterface = Util.getRI(riname)
 
   import RI.SignalOps
 

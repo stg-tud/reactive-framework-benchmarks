@@ -22,11 +22,12 @@ class Grid(val RI: ReactiveInterface, size: Pos, connections: Pos => List[Pos]) 
     val r = mutable.ArrayBuffer[Row]()
     r += mutable.ArrayBuffer(sources: _*)
     Range(1, size.y).foreach { y =>
-      r(y) = mutable.ArrayBuffer()
+      val row: Row = mutable.ArrayBuffer()
+      r += row
       Range(0, size.x).foreach { x =>
         val positions = connections(Pos(x, y)).filter(_.inBounds(Pos(x, y)))
         val dependencies = positions.map(p => r(p.y)(p.x))
-        r(y) += RI.combineSeq(dependencies)(_.mkString(", "))
+        row += RI.combineSeq(dependencies)(_.mkString(", "))
       }
     }
     r
