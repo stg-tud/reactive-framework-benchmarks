@@ -18,7 +18,7 @@ class Grid(val RI: ReactiveInterface, size: Pos, connections: Pos => List[Pos]) 
 
   val sources: IndexedSeq[Var] = Range(0, size.x).map(i => RI.makeVar(f"$i"))
 
-  private val rows = {
+  val rows: mutable.ArrayBuffer[Row] = {
     val r = mutable.ArrayBuffer[Row]()
     r += mutable.ArrayBuffer(sources: _*)
     Range(1, size.y).foreach { y =>
@@ -29,5 +29,6 @@ class Grid(val RI: ReactiveInterface, size: Pos, connections: Pos => List[Pos]) 
         r(y) += RI.combineSeq(dependencies)(_.mkString(", "))
       }
     }
+    r
   }
 }
