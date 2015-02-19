@@ -7,7 +7,7 @@ import scala.collection.mutable
 
 
 case class Pos(x: Int, y: Int) {
-  def inBounds(target: Pos) = 0 < x && 0 < y && x <= target.x && y <= target.y
+  def inBounds(target: Pos) = 0 <= x && 0 <= y && x <= target.x && y <= target.y
 }
 
 class Grid(val RI: ReactiveInterface, size: Pos, connections: Pos => List[Pos]) {
