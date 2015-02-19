@@ -21,12 +21,12 @@ abstract class SomeState {
   import RI.SignalOps
 
   var input: AtomicInteger = new AtomicInteger(0)
-  var source: RI.ISignalSource[Int] = _
+  var source: RI.IVar[Int] = _
   var result: RI.ISignal[Int] = _
 
   @Setup(Level.Iteration)
   def setup() = {
-    source = RI.makeSignal(input.get())
+    source = RI.makeVar(input.get())
     result = source.map(1.+).map(1.+).map(1.+)
 
   }
@@ -56,14 +56,14 @@ class SimpleMapping {
   @Benchmark
   def local(bh: Blackhole, state: LocalState) = {
     import state._
-    RI.setSignal(source)(input.incrementAndGet())
+    RI.setVar(source)(input.incrementAndGet())
     RI.getSignal(result)
   }
 
   @Benchmark
   def shared(bh: Blackhole, state: SharedState) = {
     import state._
-    RI.setSignal(source)(input.incrementAndGet())
+    RI.setVar(source)(input.incrementAndGet())
     RI.getSignal(result)
   }
 

@@ -13,9 +13,9 @@ import scala.language.higherKinds
 trait ReactiveInterface {
 
   type ISignal[_]
-  type ISignalSource[A] <: ISignal[A]
+  type IVar[A] <: ISignal[A]
   type IEvent[_]
-  type IEventSource[A] <: IEvent[A]
+  type IEvt[A] <: IEvent[A]
 
   implicit class SignalOps[A](self: ISignal[A]) {
     def map[B](f: A => B): ISignal[B] = mapSignal(self)(f)
@@ -23,13 +23,13 @@ trait ReactiveInterface {
 
   def mapSignal[I, O](signal: ISignal[I])(f: I => O): ISignal[O]
 
-  def setSignal[V](source: ISignalSource[V])(value: V): Unit
+  def setVar[V](source: IVar[V])(value: V): Unit
 
-  def setSignals[V](changes: (ISignalSource[V], V)*): Unit
+  def setVars[V](changes: (IVar[V], V)*): Unit
 
   def getSignal[V](sink: ISignal[V]): V
 
-  def makeSignal[V](value: V): ISignalSource[V]
+  def makeVar[V](value: V): IVar[V]
 
   def combineSeq[V, R](signals: Seq[ISignal[V]])(f: Seq[V] => R): ISignal[R]
   def combine2[A1, A2, R](s1: ISignal[A1], s2: ISignal[A2])(f: (A1, A2) => R): ISignal[R]
@@ -42,20 +42,20 @@ object ReactiveInterface {
     import rescala._
     new ReactiveInterface {
 
-      override type IEventSource[A] = Evt[A]
+      override type IEvt[A] = Evt[A]
       override type ISignal[A] = Signal[A]
-      override type ISignalSource[A] = Var[A]
+      override type IVar[A] = Var[A]
       override type IEvent[A] = Event[A]
 
       def mapSignal[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
 
-      def setSignal[V](source: Var[V])(value: V): Unit = source.set(value)
+      def setVar[V](source: Var[V])(value: V): Unit = source.set(value)
 
-      def setSignals[V](changes: (Var[V], V)*): Unit = engine.plan(changes.map(_._1): _*) { t => changes.foreach { case (s, v) => setSignal(s)(v) } }
+      def setVars[V](changes: (Var[V], V)*): Unit = engine.plan(changes.map(_._1): _*) { t => changes.foreach { case (s, v) => setVar(s)(v) } }
 
       def getSignal[V](sink: Signal[V]): V = sink.now
 
-      def makeSignal[V](value: V): Var[V] = Var(value)
+      def makeVar[V](value: V): Var[V] = Var(value)
 
       def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = Signals.static(signals: _*) { turn =>
         signals.map(_.get(turn))
@@ -76,16 +76,16 @@ object ReactiveInterface {
     import scala.concurrent.stm.atomic
     new ReactiveInterface {
 
-      override type IEventSource[A] = EventSource[A]
+      override type IEvt[A] = EventSource[A]
       override type ISignal[A] = Signal[A]
-      override type ISignalSource[A] = Var[A]
+      override type IVar[A] = Var[A]
       override type IEvent[A] = EventStream[A]
 
       def mapSignal[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
 
-      def setSignal[V](source: Var[V])(value: V): Unit = setSignals(source -> value)
+      def setVar[V](source: Var[V])(value: V): Unit = setVars(source -> value)
 
-      def setSignals[V](changes: (Var[V], V)*): Unit = {
+      def setVars[V](changes: (Var[V], V)*): Unit = {
         val tb = new reactive.TransactionBuilder
         changes.foreach { case (source, v) => tb.set(source, v) }
         tb.commit()
@@ -93,7 +93,7 @@ object ReactiveInterface {
 
       def getSignal[V](sink: Signal[V]): V = sink.now
 
-      def makeSignal[V](value: V): Var[V] = Var(value)
+      def makeVar[V](value: V): Var[V] = Var(value)
 
       def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = atomic { tx =>
         new reactive.signals.impl.FunctionalSignal({
@@ -117,19 +117,19 @@ object ReactiveInterface {
 
     new ReactiveInterface {
 
-      override type IEventSource[A] = Var[A]
+      override type IEvt[A] = Var[A]
       override type ISignal[A] = Rx[A]
-      override type ISignalSource[A] = Var[A]
+      override type IVar[A] = Var[A]
       override type IEvent[A] = Rx[A]
       def mapSignal[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = Rx(f(signal()))
 
-      def setSignal[V](source: rx.Var[V])(value: V): Unit = source() = value
+      def setVar[V](source: rx.Var[V])(value: V): Unit = source() = value
 
-      def setSignals[V](changes: (rx.Var[V], V)*): Unit = changes.foreach { case (source, v) => source() = v }
+      def setVars[V](changes: (rx.Var[V], V)*): Unit = changes.foreach { case (source, v) => source() = v }
 
       def getSignal[V](sink: Rx[V]): V = sink()
 
-      def makeSignal[V](value: V): rx.Var[V] = rx.Var(value)
+      def makeVar[V](value: V): rx.Var[V] = rx.Var(value)
 
       def transpose[V](signals: Seq[Rx[V]]): Rx[Seq[V]] = Rx { signals.map(_()) }
 
@@ -150,9 +150,9 @@ object ReactiveInterface {
     new ReactiveInterface {
 
 
-      override type IEventSource[A] = domain.type#EventSource[A]
+      override type IEvt[A] = domain.type#EventSource[A]
       override type ISignal[A] = domain.type#Signal[A]
-      override type ISignalSource[A] = domain.type#Var[A]
+      override type IVar[A] = domain.type#Var[A]
       override type IEvent[A] = domain.type#Events[A]
 
       def scheduleAndRun[R](f: => R): R = domain.synchronized {
@@ -171,12 +171,12 @@ object ReactiveInterface {
 
       def getSignal[V](sink: domain.type#Signal[V]): V = sink.getValue
 
-      def setSignal[V](source: domain.type#Var[V])(value: V): Unit = setSignals(source -> value)
+      def setVar[V](source: domain.type#Var[V])(value: V): Unit = setVars(source -> value)
 
-      def setSignals[V](changes: (domain.type#Var[V], V)*): Unit =
+      def setVars[V](changes: (domain.type#Var[V], V)*): Unit =
         scheduleAndRun { changes.foreach { case (source, v) => source() = v } }
 
-      def makeSignal[V](value: V): domain.type#Var[V] = domain.Var(value)(domain.owner)
+      def makeVar[V](value: V): domain.type#Var[V] = domain.Var(value)(domain.owner)
 
       def transpose[V](signals: Seq[domain.type#Signal[V]]): domain.type#Signal[Seq[V]] =
         scheduleAndRun { domain.Strict { signals.map(_()) } }
