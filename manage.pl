@@ -39,7 +39,7 @@ sub makeRuns {
   my @runs;
 
   for my $size (1..16,32,64) {
-    for my $framework ("REScala", "REScalaSTM", "REScalaSync", "SIDUP", "scala.rx", "scala.react") {
+    for my $framework ("REScalaSpin", "REScalaSpinWait", "REScalaSTM", "REScalaSync", "SIDUP", "scala.rx", "scala.react") {
       my $name = "size_$size-framework_$framework";
       my $program = makeRunString($name,
         {
