@@ -14,8 +14,9 @@ my $RESULTDIR = 'results';
 
 given($ARGV[0]) {
   when (undef) { say Dumper(makeRuns()) }
-  when ("init") { init(); }
-  when ("run") { run(); }
+  when ("init") { init() }
+  when ("run") { run() }
+  when ("submit") { submitAll() }
 };
 
 sub init {
@@ -37,36 +38,37 @@ sub run {
 sub makeRuns {
   my @runs;
 
-  for my $tablesize (64, 256) {
-    for my $layout ("alternating") {
-      for my $work (0) {
-        for my $threads (1) {
-          my $name = "size$tablesize-threads$threads";
-          my $program = makeRunString($name,
-            {
-              p => { # parameters
-                philosophers => $tablesize,
-                #engine => "pessimistic",
-                work => $work,
-                layout => $layout,
-                tableType => "static",
-              },
-              wi => 5, # warmup iterations
-              w => "2000ms", # warmup time
-              f => 1, # forks
-              i => 5, # iterations
-              r => "1000ms", # time per iteration
-              t => $threads, #threads
-            },
-            ".*reference"
-          );
-          push @runs, {name => $name, program => $program};
-        }
-      }
+  for my $size (1..16,32,64) {
+    for my $framework ("REScala", "REScalaSTM", "REScalaSync", "SIDUP", "scala.rx", "scala.react") {
+      my $name = "size_$size-framework_$framework";
+      my $program = makeRunString($name,
+        {
+          p => { # parameters
+            depth => $size * 4,
+            sources => $size * 4,
+            riname => $framework,
+          },
+          wi => 20, # warmup iterations
+          w => "1000ms", # warmup time
+          f => 5, # forks
+          i => 10, # iterations
+          r => "1000ms", # time per iteration
+          t => $size, #threads
+          to => "10s", #timeout
+        },
+        ".*prim"
+      );
+      push @runs, {name => $name, program => $program};
     }
   }
 
   \@runs;
+}
+
+sub submitAll {
+  for my $run (@{ makeRuns() }) {
+    submit(hhlrjob($run->{name}, $run->{program}))
+  }
 }
 
 sub submit {
