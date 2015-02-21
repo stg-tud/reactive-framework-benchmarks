@@ -4,6 +4,8 @@ use 5.010;
 use strict;
 use warnings;
 use utf8;
+no if $] >= 5.018, warnings => "experimental::smartmatch";
+
 use Data::Dumper;
 
 my $EXECUTABLE = './Benchmarks/target/start';
