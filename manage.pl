@@ -25,6 +25,7 @@ given($ARGV[0]) {
 
 sub init {
   mkdir $RESULTDIR;
+  mkdir $OUTDIR;
   chdir "Benchmarks";
   system('sbt','clean', 'stage', 'compileJmh');
   chdir "..";
@@ -104,10 +105,10 @@ sub hhlrjob {
 #BSUB -J REScalaBenchmark
 #
 # File / path where STDOUT will be written, the %J is the job id
-#BSUB -o "$OUTDIR/$name.out"
+#BSUB -o $OUTDIR/$name.out
 #
 # File / path where STDERR will be written, the %J is the job id
-# #BSUB -e REScalaBenchmark.err%J
+# #BSUB -e $OUTDIR/$name.err
 #
 # Request the time you need for execution in minutes
 # The format for the parameter is: [hour:]minute,
