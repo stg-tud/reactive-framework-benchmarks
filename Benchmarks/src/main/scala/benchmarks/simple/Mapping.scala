@@ -31,19 +31,19 @@ abstract class SomeState {
 
 @State(Scope.Thread)
 class LocalState extends SomeState {
-  @Param(Array("REScala", "SIDUP", "scala.react", "scala.rx"))
+  @Param
   var riname: String = _
 }
 
 @State(Scope.Benchmark)
 class SharedState extends SomeState {
-  @Param(Array("REScala", "SIDUP", "scala.react", "scala.rx"))
+  @Param
   var riname: String = _
 }
 
 
 @BenchmarkMode(Array(Mode.Throughput))
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Warmup(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Measurement(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
