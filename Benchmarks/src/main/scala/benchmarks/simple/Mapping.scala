@@ -31,13 +31,13 @@ abstract class SomeState {
 
 @State(Scope.Thread)
 class LocalState extends SomeState {
-  @Param
+  @Param(Array("REScala", "REScalaSTM", "REScalaSync", "SIDUP", "scala.react", "scala.rx"))
   var riname: String = _
 }
 
 @State(Scope.Benchmark)
 class SharedState extends SomeState {
-  @Param
+  @Param(Array("REScala", "REScalaSTM", "REScalaSync", "SIDUP", "scala.react", "scala.rx"))
   var riname: String = _
 }
 
