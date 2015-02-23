@@ -13,42 +13,51 @@ use Data::Dumper;
 use Chart::Gnuplot;
 
 {
+  my $dbPath = ':memory:';
+  my $table = 'results';
+  my $csvDir = 'resultStore';
+  my $outDir = 'fig';
+
+  my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
+
   my @engines = qw( REScalaSpin REScalaSpinWait REScalaSTM REScalaSync scala.rx scala.react SIDUP );
 
-  my $dbh = importCSV('results', ':memory:', 'results');
+  importCSV($csvDir, $dbh, $table);
 
-  plotThreadPerEngine($dbh, 'results', 'fig', @engines);
+  plotThreadPerEngine($dbh, $table, $outDir, @engines);
 
 }
 
 
 sub plotThreadPerEngine($dbh, $tableName, $targetDir, @engines) {
   mkdir $targetDir;
-  my @datasets;
   for my $engine (@engines) {
-    my $data = $dbh->selectall_arrayref("SELECT Threads, Score FROM $tableName WHERE [Param: riname] = ? ORDER BY 0 + Threads", undef, $engine);
+    my @datasets;
+    for my $benchmark ("benchmarks.simple.Mapping.local", "benchmarks.simple.Mapping.shared") {
+      my $data = $dbh->selectall_arrayref("SELECT Threads, Score FROM $tableName WHERE [Param: riname] = ? AND Benchmark = ? ORDER BY 0 + Threads", undef, $engine, $benchmark);
 
-    push @datasets, Chart::Gnuplot::DataSet->new(
-      xdata => [map {$_->[0]} @$data],
-      ydata => [map {$_->[1]} @$data],
-      title => "$engine",
-      style => "linespoints",
+      push @datasets, Chart::Gnuplot::DataSet->new(
+        xdata => [map {$_->[0]} @$data],
+        ydata => [map {$_->[1]} @$data],
+        title => "$benchmark",
+        style => "linespoints",
+      );
+    }
+    my $chart = Chart::Gnuplot->new(
+      output => "$targetDir/$engine.pdf",
+      terminal => "pdf size 8,6",
+      title  => "prim",
+      xlabel => "Threads",
+      #logscale => "x 2; set logscale y 10",
+      ylabel => "Score",
     );
+    $chart->plot2d(@datasets);
   }
-  my $chart = Chart::Gnuplot->new(
-    output => "$targetDir/result.pdf",
-    terminal => "pdf size 8,6",
-    title  => "prim",
-    xlabel => "Threads",
-    logscale => "x 2; set logscale y 10",
-    ylabel => "Score",
-  );
-  $chart->plot2d(@datasets);
+
 
 }
 
-sub initDB($dbPath, $tableName, @columns) {
-  my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
+sub updateTable($dbh, $tableName, @columns) {
 
   sub typeColumn($columnName) {
     given($columnName) {
@@ -58,6 +67,8 @@ sub initDB($dbPath, $tableName, @columns) {
   }
 
   if($dbh->selectrow_array("SELECT name FROM sqlite_master WHERE type='table' AND name='$tableName'")) {
+    my %knownColumns = map {$_ => 1} @{ $dbh->selectcol_arrayref("PRAGMA table_info($tableName)", { Columns => [2]}) };
+    @columns = grep {! defined $knownColumns{$_} } @columns;
     $dbh->do("ALTER TABLE $tableName ADD COLUMN ". typeColumn($_) . " DEFAULT NULL") for @columns;
     return $dbh;
   }
@@ -67,17 +78,19 @@ sub initDB($dbPath, $tableName, @columns) {
   return $dbh;
 }
 
-sub importCSV($folder, $dbPath, $tableName) {
-  my @files = glob("$folder/*.csv");
-  my @headers = @{csv(in => $files[0])->[0]};
-  my $dbh = initDB($dbPath, $tableName, @headers);
+sub importCSV($folder, $dbh, $tableName) {
+  my @files = (glob("$folder/*.csv"), glob("$folder/*/*.csv"));
   for my $file (@files) {
-    my $data = csv(in => $file, headers => 'skip');
-    my $sth = $dbh->prepare("INSERT INTO $tableName VALUES (" . (join ",", map {"?"} @headers) . ")");
-    for my $row (@$data) {
+    my @data = @{ csv(in => $file) };
+    say $file and next if !@data;
+    my @headers = @{ shift @data };
+    updateTable($dbh, $tableName, @headers);
+
+    my $sth = $dbh->prepare("INSERT INTO $tableName (" . (join ",", map {qq["$_"]} @headers) . ") VALUES (" . (join ',', map {'?'} @headers) . ")");
+    for my $row (@data) {
       s/(?<=\d),(?=\d)/./g for @$row;  # replace , with . in numbers
     }
-    $sth->execute(@$_) for @$data;
+    $sth->execute(@$_) for @data;
   }
   $dbh->commit();
   return $dbh;
