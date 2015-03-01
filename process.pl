@@ -37,6 +37,8 @@ use File::Find;
     {"Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat" }) for @engines;
   plotBenchmarksFor($dbh, $table, "stacks", $_, {"Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }) for @engines;
 
+  plotBenchmarksFor($dbh, $table, "stacks", "combined", map {{Title => $_, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines)
+
 }
 
 sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
