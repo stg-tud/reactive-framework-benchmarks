@@ -195,7 +195,7 @@ sub selectRun {
               t => $size, #threads
               to => "10s", #timeout
             },
-            "philosophers"
+            "dynamic.Stacks"
           );
           push @runs, {name => $name, program => $program};
         }
