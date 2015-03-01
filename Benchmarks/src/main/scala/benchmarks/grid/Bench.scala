@@ -24,7 +24,6 @@ class PrimState {
   @Param(Array("16"))
   var depth: Int = _
 
-
   import RI.SignalOps
 
   var grid: Grid = _
