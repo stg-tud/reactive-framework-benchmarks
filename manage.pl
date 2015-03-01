@@ -89,7 +89,7 @@ sub selectRun {
 
       for my $size (1..16,32,64) {
         for my $framework (@FRAMEWORKS) {
-          my $name = "threads_$size-framework_$framework";
+          my $name = "threads-$size-framework-$framework";
           my $program = makeRunString("simple", $name,
             {
               p => { # parameters
@@ -118,7 +118,7 @@ sub selectRun {
 
       for my $size (1..16,32,64) {
         for my $framework (@FRAMEWORKS) {
-          my $name = "size_$size-framework_$framework";
+          my $name = "size-$size-framework-$framework";
           my $program = makeRunString("prim", $name,
             {
               p => { # parameters
@@ -149,13 +149,42 @@ sub selectRun {
 
       for my $size (1..16,32,64) {
         for my $engine (@ENGINES) {
-          my $name = "threads-$size-framework_$engine";
+          my $name = "threads-$size-engine-$engine";
           my $program = makeRunString("philosophers", $name,
             {
               p => { # parameters
                 tableType => 'static',
                 engineName => $engine,
                 philosophers => "64,256",
+              },
+              si => "false", # synchronize iterations
+              wi => 20, # warmup iterations
+              w => "1000ms", # warmup time
+              f => 5, # forks
+              i => 10, # iterations
+              r => "1000ms", # time per iteration
+              t => $size, #threads
+              to => "10s", #timeout
+            },
+            "philosophers"
+          );
+          push @runs, {name => $name, program => $program};
+        }
+      }
+
+      @runs;
+    },
+
+    dynamicStacks => sub {
+      my @runs;
+
+      for my $size (1..16,32,64) {
+        for my $engine (@ENGINES) {
+          my $name = "threads-$size-engine-$engine";
+          my $program = makeRunString("dynamicStacks", $name,
+            {
+              p => { # parameters
+                engineName => $engine,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
