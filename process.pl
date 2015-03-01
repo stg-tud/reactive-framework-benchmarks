@@ -27,23 +27,30 @@ use File::Find;
   importCSV($csvDir, $dbh, $table);
 
   mkdir $outDir;
+  chdir $outDir;
 
-  plotBenchmarksFor($dbh, $table, "$outDir/simple", "riname", $_, "benchmarks.simple.Mapping.local", "benchmarks.simple.Mapping.shared") for @frameworks;
-  plotBenchmarksFor($dbh, $table, "$outDir/grid", "riname", $_, "benchmarks.grid.Bench.primGrid") for @frameworks;
-  plotBenchmarksFor($dbh, $table, "$outDir/philosophers", "engineName", $_, "benchmarks.philosophers.PhilosopherCompetition.eat") for @engines;
-  plotBenchmarksFor($dbh, $table, "$outDir/stacks", "engineName", $_, "benchmarks.dynamic.Stacks.run") for @engines;
+  plotBenchmarksFor($dbh, $table, "simple", $_,
+    {"Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.local"},
+    {"Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.shared"}) for @frameworks;
+  plotBenchmarksFor($dbh, $table, "grid", $_, {"Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" }) for @frameworks;
+  plotBenchmarksFor($dbh, $table, "philosophers", $_,
+    {"Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat" }) for @engines;
+  plotBenchmarksFor($dbh, $table, "stacks", $_, {"Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }) for @engines;
 
 }
 
-sub plotBenchmarksFor($dbh, $tableName, $targetDir, $key, $param, @benchmarks) {
+sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
   my @datasets;
-  for my $benchmark (@benchmarks) {
+  for my $graph (@graphs) {
+    my $title = delete $graph->{"Title"};
+    my @keys = keys %{$graph};
+    my $where = join " AND ", map {qq["$_" = ?]} @keys;
     my $data = $dbh->selectall_arrayref(
-      "SELECT Threads, Score FROM $tableName WHERE [Param: $key] = ? AND Benchmark = ? ORDER BY 0 + Threads",
-       undef, $param, $benchmark);
-    push @datasets, makeDataset($benchmark, $data);
+      "SELECT Threads, Score FROM $tableName WHERE $where ORDER BY 0 + Threads",
+       undef, @{$graph}{@keys});
+    push @datasets, makeDataset($title, $data);
   }
-  plotDatasets($dbh, $tableName, $targetDir, $param, @datasets);
+  plotDatasets($dbh, $tableName, $group, $name, @datasets);
 }
 
 sub makeDataset($name, $data) {
@@ -55,10 +62,10 @@ sub makeDataset($name, $data) {
   );
 }
 
-sub plotDatasets($dbh, $tableName, $targetDir, $name, @datasets) {
-  mkdir $targetDir;
+sub plotDatasets($dbh, $tableName, $group, $name, @datasets) {
+  mkdir $group;
   my $chart = Chart::Gnuplot->new(
-    output => "$targetDir/$name.pdf",
+    output => "$group/$name.pdf",
     terminal => "pdf size 8,6",
     title  => $name,
     xlabel => "Threads",
