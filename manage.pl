@@ -12,15 +12,15 @@ my $EXECUTABLE = './Benchmarks/target/start';
 my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
 my @FRAMEWORKS = ("REScalaSpin", "REScalaSpinWait", "REScalaSTM", "REScalaSync", "SIDUP", "scala.rx", "scala.react");
+my @ENGINES = qw< synchron spinning stm spinningWait >;
 
 # stop java from formating numbers with `,` instead of `.`
 $ENV{'LANG'} = 'en_US.UTF-8';
 
 my $command = shift @ARGV;
-my @RUN = @ARGV ? @ARGV : qw< prim simple >;
+my @RUN = @ARGV ? @ARGV : qw< prim simple philosophers>;
 
 say "selected @RUN";
-
 
 given($command) {
   when ("show") { say Dumper([ makeRuns() ]) }
@@ -60,15 +60,6 @@ sub submit {
   close $BSUB;
 }
 
-sub makeRuns {
-  my @runs;
-  for (@RUN) {
-    when ("simple") { push @runs, makeRunsSimple() }
-    when ("prim") { push @runs, makeRunsPrim() }
-  }
-  @runs;
-}
-
 sub makeRunString {
   my ($prefix, $name, $args, @benchmarks) = @_;
   my %arguments = %$args;
@@ -82,64 +73,118 @@ sub makeRunString {
   "$EXECUTABLE -rf csv -rff \"results/$prefix/$name.csv\" $paramstring"
 }
 
-sub makeRunsSimple {
+sub makeRuns {
   my @runs;
-
-  for my $size (1..16,32,64) {
-    for my $framework (@FRAMEWORKS) {
-      my $name = "threads_$size-framework_$framework";
-      my $program = makeRunString("simple", $name,
-        {
-          p => { # parameters
-            riname => $framework,
-          },
-          si => "false", # synchronize iterations
-          wi => 20, # warmup iterations
-          w => "1000ms", # warmup time
-          f => 5, # forks
-          i => 10, # iterations
-          r => "1000ms", # time per iteration
-          t => $size, #threads
-          to => "10s", #timeout
-        },
-        "simple.Mapping"
-      );
-      push @runs, {name => $name, program => $program};
-    }
+  for my $run (@RUN) {
+    push @runs, selectRun($run);
   }
-
   @runs;
 }
 
-sub makeRunsPrim {
-  my @runs;
+sub selectRun {
+  my ($run) = @_;
+  my %selection = (
+    simple => sub {
+      my @runs;
 
-  for my $size (1..16,32,64) {
-    for my $framework (@FRAMEWORKS) {
-      my $name = "size_$size-framework_$framework";
-      my $program = makeRunString("prim", $name,
-        {
-          p => { # parameters
-            depth => $size * 4,
-            sources => $size * 4,
-            riname => $framework,
-          },
-          si => "false", # synchronize iterations
-          wi => 20, # warmup iterations
-          w => "1000ms", # warmup time
-          f => 5, # forks
-          i => 10, # iterations
-          r => "1000ms", # time per iteration
-          t => $size, #threads
-          to => "10s", #timeout
-        },
-        ".*prim"
-      );
-      push @runs, {name => $name, program => $program};
-    }
+      for my $size (1..16,32,64) {
+        for my $framework (@FRAMEWORKS) {
+          my $name = "threads_$size-framework_$framework";
+          my $program = makeRunString("simple", $name,
+            {
+              p => { # parameters
+                riname => $framework,
+              },
+              si => "false", # synchronize iterations
+              wi => 20, # warmup iterations
+              w => "1000ms", # warmup time
+              f => 5, # forks
+              i => 10, # iterations
+              r => "1000ms", # time per iteration
+              t => $size, #threads
+              to => "10s", #timeout
+            },
+            "simple.Mapping"
+          );
+          push @runs, {name => $name, program => $program};
+        }
+      }
+
+      @runs;
+    },
+
+    prim => sub {
+      my @runs;
+
+      for my $size (1..16,32,64) {
+        for my $framework (@FRAMEWORKS) {
+          my $name = "size_$size-framework_$framework";
+          my $program = makeRunString("prim", $name,
+            {
+              p => { # parameters
+                depth => 64,
+                sources => 64,
+                riname => $framework,
+              },
+              si => "false", # synchronize iterations
+              wi => 20, # warmup iterations
+              w => "1000ms", # warmup time
+              f => 5, # forks
+              i => 10, # iterations
+              r => "1000ms", # time per iteration
+              t => $size, #threads
+              to => "10s", #timeout
+            },
+            ".*prim"
+          );
+          push @runs, {name => $name, program => $program};
+        }
+      }
+
+      @runs;
+    },
+
+    philosophers => sub {
+      my @runs;
+
+      for my $size (1..16,32,64) {
+        for my $engine (@ENGINES) {
+          my $name = "threads-$size-framework_$engine";
+          my $program = makeRunString("philosophers", $name,
+            {
+              p => { # parameters
+                tableType => 'static',
+                engineName => $engine,
+                philosophers => "64,256",
+              },
+              si => "false", # synchronize iterations
+              wi => 20, # warmup iterations
+              w => "1000ms", # warmup time
+              f => 5, # forks
+              i => 10, # iterations
+              r => "1000ms", # time per iteration
+              t => $size, #threads
+              to => "10s", #timeout
+            },
+            "philosophers"
+          );
+          push @runs, {name => $name, program => $program};
+        }
+      }
+
+      @runs;
+    },
+
+  );
+
+  if (defined $selection{$run}) {
+    return $selection{$run}->();
+  }
+  else {
+    say "unknown: $run";
+    return ();
   }
 
-  @runs;
 }
 
 
