@@ -84,10 +84,14 @@ sub importCSV($folder, $dbh, $tableName) {
     my @headers = @{ shift @data };
     updateTable($dbh, $tableName, @headers);
 
-    my $sth = $dbh->prepare("INSERT INTO $tableName (" . (join ",", map {qq["$_"]} @headers) . ") VALUES (" . (join ',', map {'?'} @headers) . ")");
     for my $row (@data) {
       s/(?<=\d),(?=\d)/./g for @$row;  # replace , with . in numbers
+      if ($row->{"Unit"} eq "ops/s") {  # convert to ops/ms
+        $row->{"Score"} /= 1000;
+        $row->{"Unit"} = "ops/ms");
+      }
     }
+    my $sth = $dbh->prepare("INSERT INTO $tableName (" . (join ",", map {qq["$_"]} @headers) . ") VALUES (" . (join ',', map {'?'} @headers) . ")");
     $sth->execute(@$_) for @data;
   }
   $dbh->commit();
