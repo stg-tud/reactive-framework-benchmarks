@@ -24,12 +24,12 @@ use Chart::Gnuplot;
 
   importCSV($csvDir, $dbh, $table);
 
-  plotThreadPerEngine($dbh, $table, $outDir, @engines);
+  plotSimpleMappingPerEngine($dbh, $table, $outDir, @engines);
 
 }
 
 
-sub plotThreadPerEngine($dbh, $tableName, $targetDir, @engines) {
+sub plotSimpleMappingPerEngine($dbh, $tableName, $targetDir, @engines) {
   mkdir $targetDir;
   for my $engine (@engines) {
     my @datasets;
@@ -49,12 +49,10 @@ sub plotThreadPerEngine($dbh, $tableName, $targetDir, @engines) {
       title  => "prim",
       xlabel => "Threads",
       #logscale => "x 2; set logscale y 10",
-      ylabel => "Score",
+      ylabel => "Operations Per Millisecond",
     );
     $chart->plot2d(@datasets);
   }
-
-
 }
 
 sub updateTable($dbh, $tableName, @columns) {
