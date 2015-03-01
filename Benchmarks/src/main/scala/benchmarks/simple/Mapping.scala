@@ -3,7 +3,7 @@ package benchmarks.simple
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-import benchmarks.Util
+import benchmarks.{RIParam, Util}
 import interface.ReactiveInterface
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
@@ -11,9 +11,9 @@ import org.openjdk.jmh.infra.Blackhole
 
 abstract class SomeState {
 
-  def riname: String
+  var riparam: RIParam = _
 
-  lazy val RI: ReactiveInterface = Util.getRI(riname)
+  lazy val RI: ReactiveInterface = riparam.RI
 
   import RI.SignalOps
 
@@ -22,7 +22,8 @@ abstract class SomeState {
   var result: RI.ISignal[Int] = _
 
   @Setup(Level.Iteration)
-  def setup() = {
+  def setup(riparam: RIParam) = {
+    this.riparam = riparam
     source = RI.makeVar(input.get())
     result = source.map(1.+).map(1.+).map(1.+)
 
@@ -30,16 +31,10 @@ abstract class SomeState {
 }
 
 @State(Scope.Thread)
-class LocalState extends SomeState {
-  @Param(Array("REScalaSpin", "REScalaSpinWait", "REScalaSTM", "REScalaSync", "SIDUP", "scala.react", "scala.rx"))
-  var riname: String = _
-}
+class LocalState extends SomeState
 
 @State(Scope.Benchmark)
-class SharedState extends SomeState {
-  @Param(Array("REScalaSpin", "REScalaSpinWait", "REScalaSTM", "REScalaSync", "SIDUP", "scala.react", "scala.rx"))
-  var riname: String = _
-}
+class SharedState extends SomeState
 
 
 @BenchmarkMode(Array(Mode.Throughput))
