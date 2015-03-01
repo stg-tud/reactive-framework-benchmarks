@@ -13,7 +13,7 @@ import scala.util.Random
 @State(Scope.Benchmark)
 class PrimState {
 
-  @Param(Array("REScala", "REScalaSTM", "REScalaSync", "SIDUP", "scala.react", "scala.rx"))
+  @Param(Array("REScalaSpin", "REScalaSpinWait", "REScalaSTM", "REScalaSync", "SIDUP", "scala.react", "scala.rx"))
   var riname: String = _
 
   lazy val RI: ReactiveInterface = Util.getRI(riname)
