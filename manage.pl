@@ -185,6 +185,7 @@ sub selectRun {
             {
               p => { # parameters
                 engineName => $engine,
+                work => 10000,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
