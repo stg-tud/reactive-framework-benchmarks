@@ -3,11 +3,11 @@ package benchmarks.dynamic
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-import benchmarks.EngineParam
+import benchmarks.{EngineParam, Workload}
 import org.openjdk.jmh.annotations._
-import org.openjdk.jmh.infra.{ThreadParams, BenchmarkParams, Blackhole}
+import org.openjdk.jmh.infra.{BenchmarkParams, ThreadParams}
 import rescala._
-import rescala.turns.{Ticket, Engine, Turn}
+import rescala.turns.{Engine, Ticket, Turn}
 
 
 @State(Scope.Benchmark)
@@ -21,14 +21,14 @@ class StackState {
   var engine: Engine[Turn] = _
 
   @Setup(Level.Iteration)
-  def setup(params: BenchmarkParams, engine: EngineParam) = {
+  def setup(params: BenchmarkParams, engine: EngineParam, work: Workload) = {
     this.engine = engine.engine
     val threads = params.getThreads
     implicit val e = this.engine
     sources = Range(0, threads).map(_ => Var(input.incrementAndGet())).toArray
-    results = sources.map(_.map(1.+).map(1.+).map(1.+))
-    dynamics = results.map{ r =>
-      Signals.dynamic(r){ t =>
+    results = sources.map(_.map(1.+).map(1.+).map { work.consume(); 1.+ })
+    dynamics = results.map { r =>
+      Signals.dynamic(r) { t =>
         results(r(t) % threads)(t)
       }
     }

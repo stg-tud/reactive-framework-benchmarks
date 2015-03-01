@@ -2,7 +2,7 @@ package benchmarks.philosophers
 
 import java.util.concurrent.TimeUnit
 
-import benchmarks.{EngineParam, Util}
+import benchmarks.{Workload, EngineParam, Util}
 import benchmarks.Util.deal
 import benchmarks.philosophers.PhilosopherTable.{Seating, Thinking}
 import org.openjdk.jmh.annotations._
@@ -35,11 +35,7 @@ class PhilosopherCompetition {
   def reference(work: Workload): Unit = Blackhole.consumeCPU(work.work)
 }
 
-@State(Scope.Benchmark)
-class Workload {
-  @Param(Array("0" /*, "10000", "100000", "1000000"*/))
-  var work: Long = _
-}
+
 
 @State(Scope.Benchmark)
 class Competition {
