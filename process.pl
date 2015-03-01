@@ -21,7 +21,7 @@ use File::Find;
 
   my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
 
-  my @frameworks = qw( REScalaSpin REScalaSpinWait REScalaSTM REScalaSync scala.rx scala.react SIDUP );
+  my @frameworks = qw( REScalaSpin REScalaSpinWait REScalaSTM REScalaSync ); #  scala.rx scala.react SIDUP;
   my @engines = ("synchron", "spinning", "stm", "spinningWait");
 
   importCSV($csvDir, $dbh, $table);
@@ -37,6 +37,14 @@ use File::Find;
     {"Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat" }) for @engines;
   plotBenchmarksFor($dbh, $table, "stacks", $_, {"Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }) for @engines;
 
+  plotBenchmarksFor($dbh, $table, "simple", "local",
+    map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.local"} } @frameworks);
+  plotBenchmarksFor($dbh, $table, "simple", "shared",
+    map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.shared"} } @frameworks);
+  plotBenchmarksFor($dbh, $table, "philosophers", "combined",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat" } } @engines);
+
+  plotBenchmarksFor($dbh, $table, "grid", "combined", map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
   plotBenchmarksFor($dbh, $table, "stacks", "combined", map {{Title => $_, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines)
 
 }
@@ -48,7 +56,7 @@ sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
     my @keys = keys %{$graph};
     my $where = join " AND ", map {qq["$_" = ?]} @keys;
     my $data = $dbh->selectall_arrayref(
-      "SELECT Threads, Score FROM $tableName WHERE $where ORDER BY 0 + Threads",
+      "SELECT Threads, avg(Score) FROM $tableName WHERE $where  GROUP BY Threads ORDER BY Threads",
        undef, @{$graph}{@keys});
     push @datasets, makeDataset($title, $data);
   }
@@ -115,7 +123,7 @@ sub importCSV($folder, $dbh, $tableName) {
     my $sth = $dbh->prepare("INSERT INTO $tableName (" . (join ",", map {qq["$_"]} @headers) . ") VALUES (" . (join ',', map {'?'} @headers) . ")");
     $sth->execute(@$_) for @data;
   }
-  $dbh->do("UPDATE $tableName SET Score = Score * 1000, Unit = 'op/ms' WHERE Unit = 'op/s'");
+  $dbh->do("UPDATE $tableName SET Score = Score / 1000, Unit = 'ops/ms' WHERE Unit = 'ops/s'");
   $dbh->commit();
   return $dbh;
 }
