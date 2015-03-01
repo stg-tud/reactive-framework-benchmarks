@@ -53,6 +53,7 @@ sub makeRuns {
             sources => $size * 4,
             riname => $framework,
           },
+          si => "false", # synchronize iterations
           wi => 20, # warmup iterations
           w => "1000ms", # warmup time
           f => 5, # forks
