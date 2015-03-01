@@ -11,6 +11,7 @@ use DBI;
 use Text::CSV_XS qw( csv );
 use Data::Dumper;
 use Chart::Gnuplot;
+use File::Find;
 
 {
   my $dbPath = ':memory:';
@@ -20,39 +21,51 @@ use Chart::Gnuplot;
 
   my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
 
-  my @engines = qw( REScalaSpin REScalaSpinWait REScalaSTM REScalaSync scala.rx scala.react SIDUP );
+  my @frameworks = qw( REScalaSpin REScalaSpinWait REScalaSTM REScalaSync scala.rx scala.react SIDUP );
+  my @engines = ("synchron", "spinning", "stm", "spinningWait");
 
   importCSV($csvDir, $dbh, $table);
 
-  plotSimpleMappingPerEngine($dbh, $table, $outDir, @engines);
+  mkdir $outDir;
+
+  plotBenchmarksFor($dbh, $table, "$outDir/simple", "riname", $_, "benchmarks.simple.Mapping.local", "benchmarks.simple.Mapping.shared") for @frameworks;
+  plotBenchmarksFor($dbh, $table, "$outDir/grid", "riname", $_, "benchmarks.grid.Bench.primGrid") for @frameworks;
+  plotBenchmarksFor($dbh, $table, "$outDir/philosophers", "engineName", $_, "benchmarks.philosophers.PhilosopherCompetition.eat") for @engines;
+  plotBenchmarksFor($dbh, $table, "$outDir/stacks", "engineName", $_, "benchmarks.dynamic.Stacks.run") for @engines;
 
 }
 
-
-sub plotSimpleMappingPerEngine($dbh, $tableName, $targetDir, @engines) {
-  mkdir $targetDir;
-  for my $engine (@engines) {
-    my @datasets;
-    for my $benchmark ("benchmarks.simple.Mapping.local", "benchmarks.simple.Mapping.shared") {
-      my $data = $dbh->selectall_arrayref("SELECT Threads, Score FROM $tableName WHERE [Param: riname] = ? AND Benchmark = ? ORDER BY 0 + Threads", undef, $engine, $benchmark);
-
-      push @datasets, Chart::Gnuplot::DataSet->new(
-        xdata => [map {$_->[0]} @$data],
-        ydata => [map {$_->[1]} @$data],
-        title => "$benchmark",
-        style => "linespoints",
-      );
-    }
-    my $chart = Chart::Gnuplot->new(
-      output => "$targetDir/$engine.pdf",
-      terminal => "pdf size 8,6",
-      title  => "prim",
-      xlabel => "Threads",
-      #logscale => "x 2; set logscale y 10",
-      ylabel => "Operations Per Millisecond",
-    );
-    $chart->plot2d(@datasets);
+sub plotBenchmarksFor($dbh, $tableName, $targetDir, $key, $param, @benchmarks) {
+  my @datasets;
+  for my $benchmark (@benchmarks) {
+    my $data = $dbh->selectall_arrayref(
+      "SELECT Threads, Score FROM $tableName WHERE [Param: $key] = ? AND Benchmark = ? ORDER BY 0 + Threads",
+       undef, $param, $benchmark);
+    push @datasets, makeDataset($benchmark, $data);
   }
+  plotDatasets($dbh, $tableName, $targetDir, $param, @datasets);
+}
+
+sub makeDataset($name, $data) {
+  Chart::Gnuplot::DataSet->new(
+    xdata => [map {$_->[0]} @$data],
+    ydata => [map {$_->[1]} @$data],
+    title => $name,
+    style => "linespoints",
+  );
+}
+
+sub plotDatasets($dbh, $tableName, $targetDir, $name, @datasets) {
+  mkdir $targetDir;
+  my $chart = Chart::Gnuplot->new(
+    output => "$targetDir/$name.pdf",
+    terminal => "pdf size 8,6",
+    title  => $name,
+    xlabel => "Threads",
+    #logscale => "x 2; set logscale y 10",
+    ylabel => "Operations Per Millisecond",
+  );
+  $chart->plot2d(@datasets);
 }
 
 sub updateTable($dbh, $tableName, @columns) {
@@ -77,7 +90,10 @@ sub updateTable($dbh, $tableName, @columns) {
 }
 
 sub importCSV($folder, $dbh, $tableName) {
-  my @files = (glob("$folder/*.csv"), glob("$folder/*/*.csv"));
+  my @files;
+  find(sub {
+      push @files, $File::Find::name if $_ =~ /\.csv$/;
+    }, $folder);
   for my $file (@files) {
     my @data = @{ csv(in => $file) };
     say $file and next if !@data;
@@ -86,14 +102,11 @@ sub importCSV($folder, $dbh, $tableName) {
 
     for my $row (@data) {
       s/(?<=\d),(?=\d)/./g for @$row;  # replace , with . in numbers
-      if ($row->{"Unit"} eq "ops/s") {  # convert to ops/ms
-        $row->{"Score"} /= 1000;
-        $row->{"Unit"} = "ops/ms");
-      }
     }
     my $sth = $dbh->prepare("INSERT INTO $tableName (" . (join ",", map {qq["$_"]} @headers) . ") VALUES (" . (join ',', map {'?'} @headers) . ")");
     $sth->execute(@$_) for @data;
   }
+  $dbh->do("UPDATE $tableName SET Score = Score * 1000, Unit = 'op/ms' WHERE Unit = 'op/s'");
   $dbh->commit();
   return $dbh;
 }
