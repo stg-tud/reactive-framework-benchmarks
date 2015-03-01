@@ -2,7 +2,7 @@ package benchmarks.philosophers
 
 import java.util.concurrent.TimeUnit
 
-import benchmarks.Util
+import benchmarks.{EngineParam, Util}
 import benchmarks.Util.deal
 import benchmarks.philosophers.PhilosopherTable.{Seating, Thinking}
 import org.openjdk.jmh.annotations._
@@ -44,9 +44,6 @@ class Workload {
 @State(Scope.Benchmark)
 class Competition {
 
-  @Param(Array("synchron", "spinning", "stm", "spinningWait"))
-  var engineName: String = _
-
   @Param(Array("16", "32", "64", "128", "256", "512", "1024", "2048"))
   var philosophers: Int = _
 
@@ -61,10 +58,10 @@ class Competition {
   var blocks: Array[Array[Seating]] = _
 
   @Setup
-  def setup(params: BenchmarkParams, work: Workload) = {
+  def setup(params: BenchmarkParams, work: Workload, engineParam: EngineParam) = {
     table = tableType match {
-      case "static" => new PhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
-      case "dynamic" => new DynamicPhilosopherTable(philosophers, work.work)(Engines.byName(engineName))
+      case "static" => new PhilosopherTable(philosophers, work.work)(engineParam.engine)
+      case "dynamic" => new DynamicPhilosopherTable(philosophers, work.work)(engineParam.engine)
     }
     blocks = (layout match {
       case "block" =>
