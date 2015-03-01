@@ -78,7 +78,7 @@ class Competition {
 
   @TearDown(Level.Iteration)
   def cleanEating(): Unit = {
-    print(s"actually eaten: ${ table.eaten.get() } measured: ")
+    //print(s"actually eaten: ${ table.eaten.get() } measured: ")
     table.eaten.set(0)
     table.seatings.foreach(_.philosopher.set(Thinking)(table.engine))
   }
