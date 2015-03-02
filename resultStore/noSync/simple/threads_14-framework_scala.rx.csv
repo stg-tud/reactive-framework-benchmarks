@@ -1,0 +1,3 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: riname"
+"benchmarks.simple.Mapping.local","thrpt",14,50.000000,315.990195,3.992790,"ops/ms",scala.rx
+"benchmarks.simple.Mapping.shared","thrpt",14,50.000000,535.866669,26.232193,"ops/ms",scala.rx

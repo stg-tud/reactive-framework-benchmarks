@@ -1,0 +1,3 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: riname"
+"benchmarks.simple.Mapping.local","thrpt",10,50.000000,2212.582853,128.678181,"ops/ms",SIDUP
+"benchmarks.simple.Mapping.shared","thrpt",10,50.000000,102.789173,3.187563,"ops/ms",SIDUP
