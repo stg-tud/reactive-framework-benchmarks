@@ -185,7 +185,7 @@ sub selectRun {
             {
               p => { # parameters
                 engineName => $engine,
-                work => 5000,
+                work => 2000,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
@@ -200,6 +200,33 @@ sub selectRun {
           );
           push @runs, {name => $name, program => $program};
         }
+      }
+
+      @runs;
+    },
+
+    reference => sub {
+      my @runs;
+
+      for my $size (1..16,32,64) {
+          my $name = "threads-$size";
+          my $program = makeRunString("reference", $name,
+            {
+              p => { # parameters
+                work => 2000,
+              },
+              si => "false", # synchronize iterations
+              wi => 5, # warmup iterations
+              w => "1000ms", # warmup time
+              f => 5, # forks
+              i => 5, # iterations
+              r => "1000ms", # time per iteration
+              t => $size, #threads
+              to => "10s", #timeout
+            },
+            "WorkReference"
+          );
+          push @runs, {name => $name, program => $program};
       }
 
       @runs;
@@ -270,6 +297,7 @@ module load java
 echo "--------- processors ---------"
 nproc
 echo "------------------------------"
+ls -al /work/local
 
 export JAVA_OPTS="-Xmx1024m -Xms1024m -Djava.io.tmpdir=\$TMP"
 $programstring
