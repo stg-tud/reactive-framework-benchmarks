@@ -1,2 +1,0 @@
-"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: engineName","Param: work"
-"benchmarks.dynamic.Stacks.run","thrpt",16,50.000000,103.734021,5.707739,"ops/ms",stm,10000
