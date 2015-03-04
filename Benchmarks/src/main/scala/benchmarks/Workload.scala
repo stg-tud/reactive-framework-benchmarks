@@ -12,7 +12,7 @@ class Workload {
   def consume() = Blackhole.consumeCPU(work)
 }
 
-@BenchmarkMode(Array(Mode.AverageTime))
+@BenchmarkMode(Array(Mode.Throughput))
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Warmup(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Measurement(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
