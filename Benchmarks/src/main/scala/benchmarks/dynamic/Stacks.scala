@@ -26,7 +26,7 @@ class StackState {
     val threads = params.getThreads
     implicit val e = this.engine
     sources = Range(0, threads).map(_ => Var(input.incrementAndGet())).toArray
-    results = sources.map(_.map(1.+).map(1.+).map { work.consume(); 1.+ })
+    results = sources.map(_.map(1.+).map(1.+).map { x => work.consume(); x + 1 })
     dynamics = results.map { r =>
       Signals.dynamic(r) { t =>
         results(r(t) % threads)(t)
