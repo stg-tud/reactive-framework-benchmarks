@@ -27,9 +27,11 @@ class StackState {
     implicit val e = this.engine
     sources = Range(0, threads).map(_ => Var(input.incrementAndGet())).toArray
     results = sources.map(_.map(1.+).map(1.+).map { x => work.consume(); x + 1 })
-    dynamics = results.map { r =>
+    dynamics = results.zipWithIndex.map { case (r, i) =>
       Signals.dynamic(r) { t =>
-        results(r(t) % threads)(t)
+        val v = r(t)
+        val idx = i + (if (v % 17 == 0) v else 1)
+        sources((i + threads) % threads)(t)
       }
     }
 
