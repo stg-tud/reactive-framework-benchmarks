@@ -271,8 +271,7 @@ echo "--------- processors ---------"
 nproc
 echo "------------------------------"
 
-# Simple "hello world" program output - Should be generated three times in the output file
-export JAVA_OPTS="-Xmx1024m -Xms1024m"
+export JAVA_OPTS="-Xmx1024m -Xms1024m-Djava.io.tmpdir=\$TMP"
 $programstring
 
 # Extended example with reportings for processor/thread binding - for activation remove character "#"
