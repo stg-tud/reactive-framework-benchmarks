@@ -269,7 +269,7 @@ sub hhlrjob {
 #
 # Request the number of compute slots you want to use
 #BSUB -n 16
-## BSUB -q testmem
+#BSUB -q deflt
 # request exclusive access
 #BUSB -x
 #
