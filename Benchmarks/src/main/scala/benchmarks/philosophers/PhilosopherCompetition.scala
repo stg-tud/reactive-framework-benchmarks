@@ -30,9 +30,6 @@ class PhilosopherCompetition {
     }) {}
 
   }
-
-  @Benchmark
-  def reference(work: Workload): Unit = Blackhole.consumeCPU(work.work)
 }
 
 

@@ -1,6 +1,8 @@
 package benchmarks
 
-import org.openjdk.jmh.annotations.{Param, Scope, State}
+import java.util.concurrent.TimeUnit
+
+import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 
 @State(Scope.Benchmark)
@@ -8,4 +10,15 @@ class Workload {
   @Param(Array("0" /*, "10000", "100000", "1000000"*/))
   var work: Long = _
   def consume() = Blackhole.consumeCPU(work)
+}
+
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Warmup(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
+@Measurement(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
+@Fork(1)
+@Threads(1)
+class WorkReference {
+  @Benchmark
+  def reference(work: Workload): Unit = Blackhole.consumeCPU(work.work)
 }
