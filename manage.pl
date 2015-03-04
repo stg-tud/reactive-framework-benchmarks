@@ -185,7 +185,7 @@ sub selectRun {
             {
               p => { # parameters
                 engineName => $engine,
-                work => 10000,
+                work => 5000,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
@@ -271,7 +271,7 @@ echo "--------- processors ---------"
 nproc
 echo "------------------------------"
 
-export JAVA_OPTS="-Xmx1024m -Xms1024m-Djava.io.tmpdir=\$TMP"
+export JAVA_OPTS="-Xmx1024m -Xms1024m -Djava.io.tmpdir=\$TMP"
 $programstring
 
 # Extended example with reportings for processor/thread binding - for activation remove character "#"
