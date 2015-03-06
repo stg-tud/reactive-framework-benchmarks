@@ -13,6 +13,9 @@ use Data::Dumper;
 use Chart::Gnuplot;
 use File::Find;
 
+# averaging results works because the sample sizes are currently always the same
+# combining standard deviations seems harder: http://www.burtonsys.com/climate/composite_standard_deviations.html
+
 {
   my $dbPath = ':memory:';
   my $table = 'results';
