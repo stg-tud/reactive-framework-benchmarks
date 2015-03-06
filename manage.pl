@@ -299,7 +299,7 @@ nproc
 echo "------------------------------"
 ls -al /work/local
 
-export JAVA_OPTS="-Xmx1024m -Xms1024m -Djava.io.tmpdir=\$TMP"
+export JAVA_OPTS="-Xmx1024m -Xms1024m" # -Djava.io.tmpdir=\$TMP
 $programstring
 
 # Extended example with reportings for processor/thread binding - for activation remove character "#"
