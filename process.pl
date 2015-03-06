@@ -21,8 +21,8 @@ use File::Find;
 
   my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
 
-  my @frameworks = qw( REScalaSpin REScalaSpinWait REScalaSTM REScalaSync ); #  scala.rx scala.react SIDUP;
-  my @engines = ("synchron", "spinning", "stm", "spinningWait");
+  my @frameworks = qw( REScalaSpin REScalaSTM REScalaSync ); #  scala.rx scala.react SIDUP;
+  my @engines = ("synchron", "spinning", "stm");
 
   importCSV($csvDir, $dbh, $table);
 
@@ -46,13 +46,13 @@ use File::Find;
 
   plotBenchmarksFor($dbh, $table, "grid", "combined",
     map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
-  plotBenchmarksFor($dbh, $table, "stacks", "combined",
-    map {{Title => $_, "Param: work" => undef, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
+  # plotBenchmarksFor($dbh, $table, "stacks", "combined",
+  #   map {{Title => $_, "Param: work" => undef, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
   plotBenchmarksFor($dbh, $table, "stacksWork", "combined", map {{Title => $_, "Param: work" => 2000, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
-  plotBenchmarksFor($dbh, $table, "philosophersBackoff", "backoff",
-    map { {Title => $_,  "Param: engineName" => 'spinning' , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: spinningBackOff" => $_ } } (0..9) );
+  # plotBenchmarksFor($dbh, $table, "philosophersBackoff", "backoff",
+  #   map { {Title => $_,  "Param: engineName" => 'spinning' , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: spinningBackOff" => $_ } } (0..9) );
 
 }
 
@@ -66,7 +66,7 @@ sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
   my @datasets;
   for my $graph (@graphs) {
     my $title = delete $graph->{"Title"};
-    push @datasets, queryDataset($dbh, $title, queryThreads($tableName, $graph),  values %{$graph}) if $title;
+    push @datasets, queryDataset($dbh, $title // "unnamed", queryThreads($tableName, $graph),  values %{$graph});
   }
   plotDatasets($group, $name, {}, @datasets);
 }

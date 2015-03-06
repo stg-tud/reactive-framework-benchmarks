@@ -292,9 +292,7 @@ sub hhlrjob {
 # File / path where STDERR will be written, the %J is the job id
 # #BSUB -e $OUTDIR/$name-%J.err
 #
-# Request the time you need for execution in minutes
-# The format for the parameter is: [hour:]minute,
-# that means for 80 minutes you could also use this: 1:20
+# Request the time you need for execution in [hour:]minute
 #BSUB -W 0:30
 #
 # Request vitual memory you need for your job in MB
@@ -305,36 +303,17 @@ sub hhlrjob {
 #BSUB -q deflt
 # request exclusive access
 #BUSB -x
-#
-# Specify the MPI support
-# #BSUB -a openmpi
-#
-# Specify your mail address - for activation replace < your email> and remove prepending "# "
-# #BSUB -u <your email>
-#
-# Send a mail when job is done - for activation remove prepending "# "
-# #BSUB -N
-#
 
-# Unloading a predefined module
 module unload openmpi
-# Loading the required module
 module load java
-# Give an overview about all load modules
-# module list
-
-# See typical batch-system environment variables - for activation remove character "#"
-#export| grep -i LSB
-
-# Space holder - not necessary
 echo "--------- processors ---------"
 nproc
 echo "------------------------------"
 ls -al /work/local
+echo "------------------------------"
 
 export JAVA_OPTS="-Xmx1024m -Xms1024m" # -Djava.io.tmpdir=\$TMP
 $programstring
 
-# Extended example with reportings for processor/thread binding - for activation remove character "#"
 ENDPROGRAM
 }
