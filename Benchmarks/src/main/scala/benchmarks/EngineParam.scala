@@ -8,7 +8,7 @@ class EngineParam {
   @Param(Array("synchron", "spinning", "stm"))
   var engineName: String = _
 
-  @Param(Array("0", "-1"))
+  @Param(Array("7"))
   var spinningBackOff: Int = _
 
   def engine: Engine[Turn] = {
