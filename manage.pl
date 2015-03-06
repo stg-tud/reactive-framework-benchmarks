@@ -179,7 +179,7 @@ sub selectRun {
       my @runs;
 
       for my $size (1,2,4,8,12,16,32,64) {
-        for my $backOff (-1, 0, 1, 10, 100, 1000) {
+        for my $backOff (-1 .. 10) {
           my $name = "threads-$size-backOff-$backOff";
           my $program = makeRunString("philosophersBackoff", $name,
             {
