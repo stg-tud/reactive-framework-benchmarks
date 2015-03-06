@@ -88,26 +88,24 @@ sub selectRun {
       my @runs;
 
       for my $size (1..16,32,64) {
-        for my $framework (@FRAMEWORKS) {
-          my $name = "threads-$size-framework-$framework";
-          my $program = makeRunString("simple", $name,
-            {
-              p => { # parameters
-                riname => $framework,
-              },
-              si => "false", # synchronize iterations
-              wi => 20, # warmup iterations
-              w => "1000ms", # warmup time
-              f => 5, # forks
-              i => 10, # iterations
-              r => "1000ms", # time per iteration
-              t => $size, #threads
-              to => "10s", #timeout
+        my $name = "threads-$size";
+        my $program = makeRunString("simple", $name,
+          {
+            p => { # parameters
+              riname => (join ',', @FRAMEWORKS),
             },
-            "simple.Mapping"
-          );
-          push @runs, {name => $name, program => $program};
-        }
+            si => "false", # synchronize iterations
+            wi => 20, # warmup iterations
+            w => "1000ms", # warmup time
+            f => 5, # forks
+            i => 10, # iterations
+            r => "1000ms", # time per iteration
+            t => $size, #threads
+            to => "10s", #timeout
+          },
+          "simple.Mapping"
+        );
+        push @runs, {name => $name, program => $program};
       }
 
       @runs;
@@ -117,28 +115,26 @@ sub selectRun {
       my @runs;
 
       for my $size (1..16,32,64) {
-        for my $framework (@FRAMEWORKS) {
-          my $name = "size-$size-framework-$framework";
-          my $program = makeRunString("prim", $name,
-            {
-              p => { # parameters
-                depth => 64,
-                sources => 64,
-                riname => $framework,
-              },
-              si => "false", # synchronize iterations
-              wi => 20, # warmup iterations
-              w => "1000ms", # warmup time
-              f => 5, # forks
-              i => 10, # iterations
-              r => "1000ms", # time per iteration
-              t => $size, #threads
-              to => "10s", #timeout
+        my $name = "size-$size";
+        my $program = makeRunString("prim", $name,
+          {
+            p => { # parameters
+              depth => 64,
+              sources => 64,
+              riname => (join ',', @FRAMEWORKS),
             },
-            ".*prim"
-          );
-          push @runs, {name => $name, program => $program};
-        }
+            si => "false", # synchronize iterations
+            wi => 20, # warmup iterations
+            w => "1000ms", # warmup time
+            f => 5, # forks
+            i => 10, # iterations
+            r => "1000ms", # time per iteration
+            t => $size, #threads
+            to => "10s", #timeout
+          },
+          ".*prim"
+        );
+        push @runs, {name => $name, program => $program};
       }
 
       @runs;
@@ -148,47 +144,15 @@ sub selectRun {
       my @runs;
 
       for my $size (1..16,32,64) {
-        for my $engine (@ENGINES) {
-          my $name = "threads-$size-engine-$engine";
+        for my $layout (qw<alternating random third block>) {
+          my $name = "threads-$size-layout-$layout";
           my $program = makeRunString("philosophers", $name,
             {
               p => { # parameters
                 tableType => 'static',
-                engineName => $engine,
+                engineName => (join ',', @ENGINES),
                 philosophers => "64,256",
-              },
-              si => "false", # synchronize iterations
-              wi => 20, # warmup iterations
-              w => "1000ms", # warmup time
-              f => 5, # forks
-              i => 10, # iterations
-              r => "1000ms", # time per iteration
-              t => $size, #threads
-              to => "10s", #timeout
-            },
-            "philosophers"
-          );
-          push @runs, {name => $name, program => $program};
-        }
-      }
-
-      @runs;
-    },
-
-    philosophersBackoff => sub {
-      my @runs;
-
-      for my $size (1,2,4,8,12,16,32,64) {
-        for my $backOff (-1 .. 10) {
-          my $name = "threads-$size-backOff-$backOff";
-          my $program = makeRunString("philosophersBackoff", $name,
-            {
-              p => { # parameters
-                tableType => 'static',
-                engineName => 'spinning',
-                layout => 'alternating',
-                spinningBackOff => $backOff,
-                philosophers => "64",
+                layout => $layout,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
@@ -212,27 +176,53 @@ sub selectRun {
       my @runs;
 
       for my $size (1..16,32,64) {
-        for my $engine (@ENGINES) {
-          my $name = "threads-$size-engine-$engine";
-          my $program = makeRunString("dynamicStacks", $name,
-            {
-              p => { # parameters
-                engineName => $engine,
-                work => 2000,
-              },
-              si => "false", # synchronize iterations
-              wi => 20, # warmup iterations
-              w => "1000ms", # warmup time
-              f => 5, # forks
-              i => 10, # iterations
-              r => "1000ms", # time per iteration
-              t => $size, #threads
-              to => "10s", #timeout
+        my $name = "threads-$size";
+        my $program = makeRunString("dynamicStacks", $name,
+          {
+            p => { # parameters
+              engineName => (join ',', @ENGINES),
+              work => 2000,
             },
-            "dynamic.Stacks"
-          );
-          push @runs, {name => $name, program => $program};
-        }
+            si => "false", # synchronize iterations
+            wi => 20, # warmup iterations
+            w => "1000ms", # warmup time
+            f => 5, # forks
+            i => 10, # iterations
+            r => "1000ms", # time per iteration
+            t => $size, #threads
+            to => "10s", #timeout
+          },
+          "dynamic.Stacks"
+        );
+        push @runs, {name => $name, program => $program};
+      }
+
+      @runs;
+    },
+
+    expensiveConflict => sub {
+      my @runs;
+
+      for my $work (0,100,500,1000,5000,10000) {
+        my $name = "work-$work";
+        my $program = makeRunString("expensiveConflict", $name,
+          {
+            p => { # parameters
+              engineName => (join ',', @ENGINES),
+              work => $work,
+            },
+            si => "false", # synchronize iterations
+            wi => 20, # warmup iterations
+            w => "1000ms", # warmup time
+            f => 5, # forks
+            i => 10, # iterations
+            r => "1000ms", # time per iteration
+            t => 2, #threads
+            to => "10s", #timeout
+          },
+          "ExpensiveConflict"
+        );
+        push @runs, {name => $name, program => $program};
       }
 
       @runs;
