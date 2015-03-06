@@ -42,10 +42,9 @@ use File::Find;
   }
   plotBenchmarksFor($dbh, $table, "grid", "combined",
     map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
-  # plotBenchmarksFor($dbh, $table, "stacks", "combined",
-  #   map {{Title => $_, "Param: work" => undef, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
-  plotBenchmarksFor($dbh, $table, "stacksWork", "combined", map {{Title => $_, "Param: work" => 2000, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
+  plotBenchmarksFor($dbh, $table, "stacks", "combined",
+    map {{Title => $_, "Param: work" => 2000, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
   # plotBenchmarksFor($dbh, $table, "philosophersBackoff", "backoff",
   #   map { {Title => $_,  "Param: engineName" => 'spinning' , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: spinningBackOff" => $_ } } (0..9) );
