@@ -11,7 +11,7 @@ use Data::Dumper;
 my $EXECUTABLE = './Benchmarks/target/start';
 my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
-my @FRAMEWORKS = ("REScalaSpin", "REScalaSpinWait", "REScalaSTM", "REScalaSync", "SIDUP", "scala.rx", "scala.react");
+my @FRAMEWORKS = ("REScalaSpin", "REScalaSTM", "REScalaSync");
 my @ENGINES = qw< synchron spinning stm >;
 
 # stop java from formating numbers with `,` instead of `.`
