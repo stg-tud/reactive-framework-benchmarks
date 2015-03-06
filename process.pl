@@ -44,42 +44,50 @@ use File::Find;
   plotBenchmarksFor($dbh, $table, "philosophers", "combined",
     map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat" } } @engines);
 
-  plotBenchmarksFor($dbh, $table, "grid", "combined", map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
-  plotBenchmarksFor($dbh, $table, "stacks", "combined", map {{Title => $_, "Param: work" => undef, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
+  plotBenchmarksFor($dbh, $table, "grid", "combined",
+    map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
+  plotBenchmarksFor($dbh, $table, "stacks", "combined",
+    map {{Title => $_, "Param: work" => undef, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
   plotBenchmarksFor($dbh, $table, "stacksWork", "combined", map {{Title => $_, "Param: work" => 2000, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
+  plotBenchmarksFor($dbh, $table, "philosophersBackoff", "backoff",
+    map { {Title => $_,  "Param: engineName" => 'spinning' , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: spinningBackOff" => $_ } } (0..9) );
+
+}
+
+sub queryThreads($tableName, $graph) {
+  my @keys = keys %{$graph};
+  my $where = join " AND ", map {qq["$_" = ?]} @keys;
+  return "SELECT Threads, avg(Score) FROM $tableName WHERE $where GROUP BY Threads ORDER BY Threads";
 }
 
 sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
   my @datasets;
   for my $graph (@graphs) {
     my $title = delete $graph->{"Title"};
-    my @keys = keys %{$graph};
-    my $where = join " AND ", map {qq["$_" = ?]} @keys;
-    my $data = $dbh->selectall_arrayref(
-      "SELECT Threads, avg(Score) FROM $tableName WHERE $where  GROUP BY Threads ORDER BY Threads",
-       undef, @{$graph}{@keys});
-    if (@$data) {
-      push @datasets, makeDataset($title, $data);
-    }
-    else {
-      say "query for $group/$name had no results: ". Dumper($graph);
-    }
+    push @datasets, queryDataset($dbh, $title, queryThreads($tableName, $graph),  values %{$graph}) if $title;
   }
-  plotDatasets($dbh, $tableName, $group, $name, @datasets);
+  plotDatasets($group, $name, {}, @datasets);
 }
 
-sub makeDataset($name, $data) {
+sub queryDataset($dbh, $title, $query, @params) {
+  my $data = $dbh->selectall_arrayref($query, undef, @params);
+  return makeDataset($title, $data) if (@$data);
+  say "query for $title had no results: [$query] @params";
+  return;
+}
+
+sub makeDataset($title, $data) {
   Chart::Gnuplot::DataSet->new(
     xdata => [map {$_->[0]} @$data],
     ydata => [map {$_->[1]} @$data],
-    title => $name,
+    title => $title,
     style => "linespoints",
   );
 }
 
-sub plotDatasets($dbh, $tableName, $group, $name, @datasets) {
+sub plotDatasets($group, $name, $additionalParams, @datasets) {
   mkdir $group;
   unless (@datasets) {
     say "dataset for $group/$name is empty";
@@ -92,6 +100,7 @@ sub plotDatasets($dbh, $tableName, $group, $name, @datasets) {
     xlabel => "Threads",
     #logscale => "x 2; set logscale y 10",
     ylabel => "Operations Per Millisecond",
+    %$additionalParams
   );
   $chart->plot2d(@datasets);
 }
