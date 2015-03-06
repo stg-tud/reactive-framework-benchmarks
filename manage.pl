@@ -12,7 +12,7 @@ my $EXECUTABLE = './Benchmarks/target/start';
 my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
 my @FRAMEWORKS = ("REScalaSpin", "REScalaSpinWait", "REScalaSTM", "REScalaSync", "SIDUP", "scala.rx", "scala.react");
-my @ENGINES = qw< synchron spinning stm spinningWait >;
+my @ENGINES = qw< synchron spinning stm >;
 
 # stop java from formating numbers with `,` instead of `.`
 $ENV{'LANG'} = 'en_US.UTF-8';
@@ -156,6 +156,39 @@ sub selectRun {
                 tableType => 'static',
                 engineName => $engine,
                 philosophers => "64,256",
+              },
+              si => "false", # synchronize iterations
+              wi => 20, # warmup iterations
+              w => "1000ms", # warmup time
+              f => 5, # forks
+              i => 10, # iterations
+              r => "1000ms", # time per iteration
+              t => $size, #threads
+              to => "10s", #timeout
+            },
+            "philosophers"
+          );
+          push @runs, {name => $name, program => $program};
+        }
+      }
+
+      @runs;
+    },
+
+    philosophersBackoff => sub {
+      my @runs;
+
+      for my $size (1,2,4,8,12,16,32,64) {
+        for my $backOff (-1, 0, 1, 10, 100, 1000) {
+          my $name = "threads-$size-backOff-$backOff";
+          my $program = makeRunString("philosophersBackoff", $name,
+            {
+              p => { # parameters
+                tableType => 'static',
+                engineName => 'spinning',
+                layout => 'alternating',
+                spinningBackOff => $backOff,
+                philosophers => "64",
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
