@@ -18,7 +18,7 @@ my @ENGINES = qw< synchron spinning stm >;
 $ENV{'LANG'} = 'en_US.UTF-8';
 
 my $command = shift @ARGV;
-my @RUN = @ARGV ? @ARGV : qw< prim simple philosophers dynamicStacks >;
+my @RUN = @ARGV ? @ARGV : qw< prim simple philosophers dynamicStacks expensiveConflict >;
 
 say "selected @RUN";
 
