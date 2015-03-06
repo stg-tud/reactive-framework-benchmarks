@@ -45,7 +45,7 @@ use File::Find;
     map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat" } } @engines);
 
   plotBenchmarksFor($dbh, $table, "grid", "combined", map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
-  plotBenchmarksFor($dbh, $table, "stacks", "combined", map {{Title => $_, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
+  plotBenchmarksFor($dbh, $table, "stacks", "combined", map {{Title => $_, "Param: work" => undef, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
   plotBenchmarksFor($dbh, $table, "stacksWork", "combined", map {{Title => $_, "Param: work" => 2000, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
@@ -60,7 +60,12 @@ sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
     my $data = $dbh->selectall_arrayref(
       "SELECT Threads, avg(Score) FROM $tableName WHERE $where  GROUP BY Threads ORDER BY Threads",
        undef, @{$graph}{@keys});
-    push @datasets, makeDataset($title, $data);
+    if (@$data) {
+      push @datasets, makeDataset($title, $data);
+    }
+    else {
+      say "query for $group/$name had no results: ". Dumper($graph);
+    }
   }
   plotDatasets($dbh, $tableName, $group, $name, @datasets);
 }
@@ -76,6 +81,10 @@ sub makeDataset($name, $data) {
 
 sub plotDatasets($dbh, $tableName, $group, $name, @datasets) {
   mkdir $group;
+  unless (@datasets) {
+    say "dataset for $group/$name is empty";
+    return;
+  }
   my $chart = Chart::Gnuplot->new(
     output => "$group/$name.pdf",
     terminal => "pdf size 8,6",
