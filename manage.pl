@@ -13,7 +13,7 @@ my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
 my @FRAMEWORKS = ("REScalaSpin", "REScalaSTM", "REScalaSync");
 my @ENGINES = qw< synchron spinning stm >;
-my @THREADS = 1..16,24,32,64;
+my @THREADS = (1..16,24,32,64);
 
 # stop java from formating numbers with `,` instead of `.`
 $ENV{'LANG'} = 'en_US.UTF-8';
