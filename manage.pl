@@ -204,7 +204,7 @@ sub selectRun {
     expensiveConflict => sub {
       my @runs;
 
-      for my $work (0,100,500,1000,5000,10000) {
+      for my $work (0,100,500,1000,3000,5000,7500,10000) {
         my $name = "work-$work";
         my $program = makeRunString("expensiveConflict", $name,
           {
