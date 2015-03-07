@@ -118,8 +118,9 @@ sub plotDatasets($group, $name, $additionalParams, @datasets) {
     say "dataset for $group/$name is empty";
     return;
   }
+  my $nospace = $name =~ s/\s//gr; # / highlighter
   my $chart = Chart::Gnuplot->new(
-    output => "$group/$name.pdf",
+    output => "$group/$nospace.pdf",
     terminal => "pdf size 6,3",
     key => "left top", #outside
     title  => $name,
