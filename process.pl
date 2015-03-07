@@ -53,7 +53,7 @@ use File::Find;
   #   map { {Title => $_,  "Param: engineName" => 'spinning' , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: spinningBackOff" => $_ } } (0..9) );
 
   my $query = queryDataset($dbh, query($table, "Param: work", "Benchmark", "Param: engineName"));
-  plotDatasets("conflicts", "Different Workloads", {xlabel => "Work"},
+  plotDatasets("conflicts", "Asymmetric Workloads", {xlabel => "Work"},
     $query->("pessimistic cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "spinning"),
     $query->("pessimistic expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "spinning"),
     $query->("stm cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "stm"),
