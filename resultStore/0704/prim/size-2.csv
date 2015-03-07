@@ -1,0 +1,4 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: depth","Param: riname","Param: sources"
+"benchmarks.grid.Bench.primGrid","thrpt",2,50.000000,3.344890,0.155602,"ops/ms",64,REScalaSpin,64
+"benchmarks.grid.Bench.primGrid","thrpt",2,50.000000,2.453374,0.119063,"ops/ms",64,REScalaSTM,64
+"benchmarks.grid.Bench.primGrid","thrpt",2,50.000000,3.408726,0.220588,"ops/ms",64,REScalaSync,64
