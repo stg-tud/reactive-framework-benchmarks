@@ -13,6 +13,7 @@ my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
 my @FRAMEWORKS = ("REScalaSpin", "REScalaSTM", "REScalaSync");
 my @ENGINES = qw< synchron spinning stm >;
+my @THREADS = 1..16,24,32,64;
 
 # stop java from formating numbers with `,` instead of `.`
 $ENV{'LANG'} = 'en_US.UTF-8';
@@ -87,7 +88,7 @@ sub selectRun {
     simple => sub {
       my @runs;
 
-      for my $size (1..16,32,64) {
+      for my $size (@THREADS) {
         my $name = "threads-$size";
         my $program = makeRunString("simple", $name,
           {
@@ -114,7 +115,7 @@ sub selectRun {
     prim => sub {
       my @runs;
 
-      for my $size (1..16,32,64) {
+      for my $size (@THREADS) {
         my $name = "size-$size";
         my $program = makeRunString("prim", $name,
           {
@@ -143,7 +144,7 @@ sub selectRun {
     philosophers => sub {
       my @runs;
 
-      for my $size (1..16,32,64) {
+      for my $size (@THREADS) {
         for my $layout (qw<alternating random third block>) {
           my $name = "threads-$size-layout-$layout";
           my $program = makeRunString("philosophers", $name,
@@ -175,7 +176,7 @@ sub selectRun {
     dynamicStacks => sub {
       my @runs;
 
-      for my $size (1..16,32,64) {
+      for my $size (@THREADS) {
         my $name = "threads-$size";
         my $program = makeRunString("dynamicStacks", $name,
           {
@@ -231,7 +232,7 @@ sub selectRun {
     reference => sub {
       my @runs;
 
-      for my $size (1..16,32,64) {
+      for my $size (@THREADS) {
           my $name = "threads-$size";
           my $program = makeRunString("reference", $name,
             {
