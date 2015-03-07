@@ -67,6 +67,15 @@ use File::Find;
   $dbh->commit();
 }
 
+sub prettyName($name) {
+  given ($name) {
+    when (/spinning|REScalaSpin/) { "pessimistic" }
+    when (/stm|REScalaSTM/) { "stm" }
+    when (/synchron|REScalaSync/) { "synchron" }
+    default { $_ }
+  }
+}
+
 sub query($tableName, $varying, @keys) {
   my $where = join " AND ", map {qq["$_" = ?]} @keys;
   return qq[SELECT "$varying", avg(Score) FROM "$tableName" WHERE $where GROUP BY "$varying" ORDER BY "$varying"];
@@ -77,7 +86,7 @@ sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
   for my $graph (@graphs) {
     my $title = delete $graph->{"Title"};
     my @keys = keys %{$graph};
-    push @datasets, queryDataset($dbh, query($tableName, "Threads", @keys))->($title // "unnamed", values %{$graph});
+    push @datasets, queryDataset($dbh, query($tableName, "Threads", @keys))->(prettyName($title) // "unnamed", values %{$graph});
   }
   plotDatasets($group, $name, {}, @datasets);
 }
