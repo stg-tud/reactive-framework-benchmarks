@@ -200,10 +200,10 @@ object ReactiveInterface {
 
     var lines = List[String]()
     var index = 0
-    def add(from: ISignal[_], to: ISignal[_]) = lines ::= s"$from -> $to;"
+    def add(sink: ISignal[_])(source: ISignal[_]) = lines ::= s"$source -> $sink;"
     def comb(sources: ISignal[_]*) = {
       index += 1
-      sources.foreach(add(index, _))
+      sources.foreach(add(index))
       index
     }
 
