@@ -121,7 +121,7 @@ sub plotDatasets($group, $name, $additionalParams, @datasets) {
   my $chart = Chart::Gnuplot->new(
     output => "$group/$name.pdf",
     terminal => "pdf size 6,3",
-    key => "left top",
+    key => "left top", #outside
     title  => $name,
     xlabel => "Threads",
     #logscale => "x 2; set logscale y 10",
