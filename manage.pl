@@ -182,7 +182,7 @@ sub selectRun {
           {
             p => { # parameters
               engineName => (join ',', @ENGINES),
-              work => 2000,
+              work => 0,
             },
             si => "false", # synchronize iterations
             wi => 20, # warmup iterations
