@@ -40,6 +40,9 @@ use File::Find;
     plotBenchmarksFor($dbh, $table, "philosophers", $layout,
       map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: layout" => $layout} } @engines);
   }
+  plotBenchmarksFor($dbh, $table, "philosophers", "combined",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat"} } @engines);
+
   plotBenchmarksFor($dbh, $table, "grid", "combined",
     map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
 
