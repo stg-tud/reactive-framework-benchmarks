@@ -32,21 +32,21 @@ use File::Find;
   mkdir $outDir;
   chdir $outDir;
 
-  plotBenchmarksFor($dbh, $table, "simple", "local",
+  plotBenchmarksFor($dbh, $table, "simple", "Simple Local State",
     map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.local"} } @frameworks);
-  plotBenchmarksFor($dbh, $table, "simple", "shared",
+  plotBenchmarksFor($dbh, $table, "simple", "Simple Shared State",
     map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.shared"} } @frameworks);
   for my $layout (qw<alternating random third block>) {
     plotBenchmarksFor($dbh, $table, "philosophers", $layout,
       map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: layout" => $layout} } @engines);
   }
-  plotBenchmarksFor($dbh, $table, "philosophers", "combined",
+  plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table",
     map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat"} } @engines);
 
-  plotBenchmarksFor($dbh, $table, "grid", "combined",
+  plotBenchmarksFor($dbh, $table, "grid", "Prim Grid",
     map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
 
-  plotBenchmarksFor($dbh, $table, "stacks", "combined",
+  plotBenchmarksFor($dbh, $table, "stacks", "Dynamic",
     map {{Title => $_, "Param: work" => 2000, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
   # plotBenchmarksFor($dbh, $table, "philosophersBackoff", "backoff",
