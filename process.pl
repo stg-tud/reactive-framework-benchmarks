@@ -52,31 +52,49 @@ use File::Find;
   # plotBenchmarksFor($dbh, $table, "philosophersBackoff", "backoff",
   #   map { {Title => $_,  "Param: engineName" => 'spinning' , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: spinningBackOff" => $_ } } (0..9) );
 
+  my $query = queryDataset($dbh, query($table, "Param: work", "Benchmark", "Param: engineName"));
+  plotDatasets("conflicts", "Different Workloads", {xlabel => "Work"},
+    $query->("pessimistic cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "spinning"),
+    $query->("pessimistic expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "spinning"),
+    $query->("stm cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "stm"),
+    $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"));
+
+  plotDatasets("conflicts", "STM aborts", {xlabel => "Work"},
+    $query->("stm cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "stm"),
+    $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"),
+    $query->("stm expensive tried", "benchmarks.conflict.ExpensiveConflict.g:tried", "stm"));
+
+  $dbh->commit();
 }
 
-sub queryThreads($tableName, $graph) {
-  my @keys = keys %{$graph};
+sub query($tableName, $varying, @keys) {
   my $where = join " AND ", map {qq["$_" = ?]} @keys;
-  return "SELECT Threads, avg(Score) FROM $tableName WHERE $where GROUP BY Threads ORDER BY Threads";
+  return qq[SELECT "$varying", avg(Score) FROM "$tableName" WHERE $where GROUP BY "$varying" ORDER BY "$varying"];
 }
 
 sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
   my @datasets;
   for my $graph (@graphs) {
     my $title = delete $graph->{"Title"};
-    push @datasets, queryDataset($dbh, $title // "unnamed", queryThreads($tableName, $graph),  values %{$graph});
+    my @keys = keys %{$graph};
+    push @datasets, queryDataset($dbh, query($tableName, "Threads", @keys))->($title // "unnamed", values %{$graph});
   }
   plotDatasets($group, $name, {}, @datasets);
 }
 
-sub queryDataset($dbh, $title, $query, @params) {
-  my $data = $dbh->selectall_arrayref($query, undef, @params);
-  return makeDataset($title, $data) if (@$data);
-  say "query for $title had no results: [$query] @params";
-  return;
+sub queryDataset($dbh, $query) {
+  my $sth = $dbh->prepare($query);
+  return sub($title, @params) {
+    $sth->execute(@params);
+    my $data = $sth->fetchall_arrayref();
+    return makeDataset($title, $data) if (@$data);
+    say "query for $title had no results: [$query] @params";
+    return;
+  }
 }
 
 sub makeDataset($title, $data) {
+  $data = [sort {$a->[0] <=> $b->[0]} @$data];
   Chart::Gnuplot::DataSet->new(
     xdata => [map {$_->[0]} @$data],
     ydata => [map {$_->[1]} @$data],
@@ -93,7 +111,8 @@ sub plotDatasets($group, $name, $additionalParams, @datasets) {
   }
   my $chart = Chart::Gnuplot->new(
     output => "$group/$name.pdf",
-    terminal => "pdf size 8,6",
+    terminal => "pdf size 6,3",
+    key => "left top",
     title  => $name,
     xlabel => "Threads",
     #logscale => "x 2; set logscale y 10",
@@ -131,7 +150,7 @@ sub importCSV($folder, $dbh, $tableName) {
     }, $folder);
   for my $file (@files) {
     my @data = @{ csv(in => $file) };
-    say $file and next if !@data;
+    say "$file is empty" and next if !@data;
     my @headers = @{ shift @data };
     updateTable($dbh, $tableName, @headers);
 
