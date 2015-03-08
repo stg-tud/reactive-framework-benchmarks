@@ -1,0 +1,16 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: engineName","Param: spinningBackOff","Param: work"
+"benchmarks.conflict.ExpensiveConflict.g","thrpt",2,50.000000,246.748935,19.303363,"ops/ms",synchron,7,100
+"benchmarks.conflict.ExpensiveConflict.g:cheap","thrpt",2,50.000000,82.269788,40.179817,"ops/ms",synchron,7,100
+"benchmarks.conflict.ExpensiveConflict.g:expensive","thrpt",2,50.000000,164.479147,26.132457,"ops/ms",synchron,7,100
+"benchmarks.conflict.ExpensiveConflict.g:succeeded","thrpt",2,50.000000,164.479147,26.132457,"ops/ms",synchron,7,100
+"benchmarks.conflict.ExpensiveConflict.g:tried","thrpt",2,50.000000,164.480148,26.132457,"ops/ms",synchron,7,100
+"benchmarks.conflict.ExpensiveConflict.g","thrpt",2,50.000000,79.843957,18.062650,"ops/ms",spinning,7,100
+"benchmarks.conflict.ExpensiveConflict.g:cheap","thrpt",2,50.000000,39.911346,9.038177,"ops/ms",spinning,7,100
+"benchmarks.conflict.ExpensiveConflict.g:expensive","thrpt",2,50.000000,39.932611,9.024678,"ops/ms",spinning,7,100
+"benchmarks.conflict.ExpensiveConflict.g:succeeded","thrpt",2,50.000000,39.932611,9.024678,"ops/ms",spinning,7,100
+"benchmarks.conflict.ExpensiveConflict.g:tried","thrpt",2,50.000000,39.933612,9.024678,"ops/ms",spinning,7,100
+"benchmarks.conflict.ExpensiveConflict.g","thrpt",2,50.000000,82.518713,6.906178,"ops/ms",stm,7,100
+"benchmarks.conflict.ExpensiveConflict.g:cheap","thrpt",2,50.000000,42.856847,4.216598,"ops/ms",stm,7,100
+"benchmarks.conflict.ExpensiveConflict.g:expensive","thrpt",2,50.000000,39.661866,2.951368,"ops/ms",stm,7,100
+"benchmarks.conflict.ExpensiveConflict.g:succeeded","thrpt",2,50.000000,39.661866,2.951368,"ops/ms",stm,7,100
+"benchmarks.conflict.ExpensiveConflict.g:tried","thrpt",2,50.000000,88.997306,6.532105,"ops/ms",stm,7,100
