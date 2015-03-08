@@ -209,6 +209,7 @@ object ReactiveInterface {
 
     def getDot(name: String = "someGraph") =
       s"""digraph $name {
+         |rankdir = BT;
          |${lines.reverse.mkString("\n")}
          |}
        """.stripMargin
