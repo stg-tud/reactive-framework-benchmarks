@@ -152,7 +152,7 @@ sub selectRun {
               p => { # parameters
                 tableType => 'static',
                 engineName => (join ',', @ENGINES),
-                philosophers => "64,256",
+                philosophers => "32,64,256",
                 layout => $layout,
               },
               si => "false", # synchronize iterations
