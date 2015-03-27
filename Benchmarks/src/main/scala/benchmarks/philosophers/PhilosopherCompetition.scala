@@ -2,9 +2,9 @@ package benchmarks.philosophers
 
 import java.util.concurrent.TimeUnit
 
+import benchmarks.EngineParam
 import benchmarks.Util.deal
 import benchmarks.philosophers.PhilosopherTable.{Seating, Thinking}
-import benchmarks.{EngineParam, Workload}
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.{BenchmarkParams, ThreadParams}
 
@@ -18,7 +18,7 @@ import scala.util.Random
 class PhilosopherCompetition {
 
   @Benchmark
-  def eat(comp: Competition, params: ThreadParams, work: Workload): Unit = {
+  def eat(comp: Competition, params: ThreadParams): Unit = {
     val myBlock = comp.blocks(params.getThreadIndex % comp.blocks.length)
     while ( {
       val seating = myBlock(Random.nextInt(myBlock.length))
@@ -45,8 +45,8 @@ class Competition {
   var blocks: Array[Array[Seating]] = _
 
   @Setup
-  def setup(params: BenchmarkParams, work: Workload, engineParam: EngineParam) = {
-    table = new PhilosopherTable(philosophers, work.work)(engineParam.engine)
+  def setup(params: BenchmarkParams, engineParam: EngineParam) = {
+    table = new PhilosopherTable(philosophers)(engineParam.engine)
 
     blocks = (layout match {
       case "block" =>
