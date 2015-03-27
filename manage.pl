@@ -10,15 +10,16 @@ use Data::Dumper;
 
 ############### CONFIGURABLE PARAMETERS ###############################
 
-my @THREADS = (1,2,4,8);
+my @THREADS = (1, 2, 4, 8);
 my @PHILOSOPHERS = (32, 256);
+my $FORKS = 1;
+my @ENGINES = qw< synchron parrp stm >;
 
 ############### END OF CONFIGURABLE PARAMETERS ########################
 
 my $EXECUTABLE = './Benchmarks/target/start';
 my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
-my @ENGINES = qw< synchron parrp stm >;
 
 # stop java from formating numbers with `,` instead of `.`
 $ENV{'LANG'} = 'en_US.UTF-8';
@@ -65,19 +66,18 @@ sub makeRuns {
   my @runs;
 
   for my $size (@THREADS) {
-    for my $layout (qw<alternating>) {
-      my $name = "threads-$size-layout-$layout";
+      my $name = "threads-$size";
       my $program = makeRunString($name,
         {
           p => { # parameters
             engineName => (join ',', @ENGINES),
             philosophers => (join ',', @PHILOSOPHERS),
-            layout => $layout,
+            layout => "alternating",
           },
           si => "false", # synchronize iterations
           wi => 20, # warmup iterations
           w => "1000ms", # warmup time
-          f => 2, # forks
+          f => $FORKS, # forks
           i => 10, # iterations
           r => "1000ms", # time per iteration
           t => $size, #threads
@@ -86,7 +86,6 @@ sub makeRuns {
         "philosophers"
       );
       push @runs, {name => $name, program => $program};
-    }
   }
 
   @runs;
