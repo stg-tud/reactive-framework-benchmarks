@@ -40,10 +40,10 @@ class Competition {
   @Param(Array("32", "256"))
   var philosophers: Int = _
 
-  @Param(Array("block", "alternating", "random", "third"))
+  @Param(Array("block", "alternating", "random"))
   var layout: String = _
 
-  @Param(Array("static", "dynamic"))
+  @Param(Array("static"))
   var tableType: String = _
 
   var table: PhilosopherTable = _
