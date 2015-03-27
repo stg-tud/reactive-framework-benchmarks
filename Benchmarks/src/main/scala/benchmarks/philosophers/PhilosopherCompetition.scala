@@ -37,7 +37,7 @@ class PhilosopherCompetition {
 @State(Scope.Benchmark)
 class Competition {
 
-  @Param(Array("16", "32", "64", "128", "256", "512", "1024", "2048"))
+  @Param(Array("32", "256"))
   var philosophers: Int = _
 
   @Param(Array("block", "alternating", "random", "third"))
