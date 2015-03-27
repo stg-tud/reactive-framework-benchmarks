@@ -12,9 +12,6 @@ object Util {
     case "REScalaSpinWait" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.spinningWait)
     case "REScalaSTM" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.STM)
     case "REScalaSync" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.synchron)
-    case "SIDUP" => interface.ReactiveInterface.sidup
-    case "scala.react" => ReactiveInterface.scalaReact()
-    case "scala.rx" => ReactiveInterface.scalaRx
   }
 
 
