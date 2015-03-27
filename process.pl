@@ -41,7 +41,7 @@ use File::Find;
 
 sub prettyName($name) {
   given ($name) {
-    when (/spinning|REScalaSpin/) { "ParRP" }
+    when (/spinning|REScalaSpin|parrp/) { "ParRP" }
     when (/stm|REScalaSTM/) { "STM" }
     when (/synchron|REScalaSync/) { "Serial" }
     default { $_ }
@@ -86,7 +86,7 @@ sub makeDataset($title, $data) {
 
 sub plotDatasets($name, $additionalParams, @datasets) {
   unless (@datasets) {
-    say "dataset for $group/$name is empty";
+    say "dataset for $name is empty";
     return;
   }
   my $nospace = $name =~ s/\s//gr; # / highlighter
