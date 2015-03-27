@@ -1,0 +1,10 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: engineName","Param: layout","Param: philosophers","Param: spinningBackOff","Param: tableType","Param: work"
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",16,50.000000,49.436798,5.901938,"ops/ms",synchron,block,32,7,static,0
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",16,50.000000,46.226232,5.073180,"ops/ms",synchron,block,64,7,static,0
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",16,50.000000,43.659978,4.255522,"ops/ms",synchron,block,256,7,static,0
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",16,50.000000,229.038328,3.413971,"ops/ms",spinning,block,32,7,static,0
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",16,50.000000,442.567601,6.122816,"ops/ms",spinning,block,64,7,static,0
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",16,50.000000,600.802059,9.056469,"ops/ms",spinning,block,256,7,static,0
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",16,50.000000,125.208536,7.373565,"ops/ms",stm,block,32,7,static,0
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",16,50.000000,216.698379,24.023618,"ops/ms",stm,block,64,7,static,0
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",16,50.000000,312.545521,37.713891,"ops/ms",stm,block,256,7,static,0
