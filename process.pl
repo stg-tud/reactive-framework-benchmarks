@@ -19,53 +19,20 @@ use File::Find;
 {
   my $dbPath = ':memory:';
   my $table = 'results';
-  my $csvDir = 'resultStore';
+  my $csvDir = 'results';
   my $outDir = 'fig';
 
   my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
 
-  my @frameworks = qw( REScalaSync REScalaSpin REScalaSTM  ); #  scala.rx scala.react SIDUP;
-  my @engines = ("synchron", "spinning", "stm");
+  my @engines = ("synchron", "parrp", "stm");
 
   importCSV($csvDir, $dbh, $table);
 
   mkdir $outDir;
   chdir $outDir;
 
-  plotBenchmarksFor($dbh, $table, "simple", "Simple Local State",
-    map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.local"} } @frameworks);
-  plotBenchmarksFor($dbh, $table, "simple", "Simple Shared State",
-    map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.shared"} } @frameworks);
-  for my $layout (qw<alternating random third block>) {
-    plotBenchmarksFor($dbh, $table, "philosophers", $layout,
-      map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: layout" => $layout} } @engines);
-  }
-  plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat"} } @engines);
-
-  plotBenchmarksFor($dbh, $table, "grid", "Prime Grid",
-    map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
-
-  plotBenchmarksFor($dbh, $table, "stacks", "Dynamic",
-    map {{Title => $_, "Param: work" => 0, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
-
-  # plotBenchmarksFor($dbh, $table, "philosophersBackoff", "backoff",
-  #   map { {Title => $_,  "Param: engineName" => 'spinning' , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: spinningBackOff" => $_ } } (0..9) );
-
-  my $query = queryDataset($dbh, query($table, "Param: work", "Benchmark", "Param: engineName"));
-  plotDatasets("conflicts", "Asymmetric Workloads", {xlabel => "Work"},
-    $query->("pessimistic cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "spinning"),
-    $query->("pessimistic expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "spinning"),
-    $query->("stm cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "stm"),
-    $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"));
-
-  plotDatasets("conflicts", "STM aborts", {xlabel => "Work"},
-    $query->("stm cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "stm"),
-    $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"),
-    $query->("stm expensive tried", "benchmarks.conflict.ExpensiveConflict.g:tried", "stm"));
-
-  for my $size (32,64,256) {
-    plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table $size",
+  for my $size (32,256) {
+    plotBenchmarksFor($dbh, $table, "Philosopher Table $size",
       map { {Title => $_, "Param: engineName" => $_ , "Param: philosophers" => $size, Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat"} } @engines);
   }
 
@@ -74,9 +41,9 @@ use File::Find;
 
 sub prettyName($name) {
   given ($name) {
-    when (/spinning|REScalaSpin/) { "pessimistic" }
-    when (/stm|REScalaSTM/) { "stm" }
-    when (/synchron|REScalaSync/) { "synchron" }
+    when (/spinning|REScalaSpin/) { "ParRP" }
+    when (/stm|REScalaSTM/) { "STM" }
+    when (/synchron|REScalaSync/) { "Serial" }
     default { $_ }
   }
 }
@@ -86,14 +53,14 @@ sub query($tableName, $varying, @keys) {
   return qq[SELECT "$varying", avg(Score) FROM "$tableName" WHERE $where GROUP BY "$varying" ORDER BY "$varying"];
 }
 
-sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
+sub plotBenchmarksFor($dbh, $tableName, $name, @graphs) {
   my @datasets;
   for my $graph (@graphs) {
     my $title = delete $graph->{"Title"};
     my @keys = keys %{$graph};
     push @datasets, queryDataset($dbh, query($tableName, "Threads", @keys))->(prettyName($title) // "unnamed", values %{$graph});
   }
-  plotDatasets($group, $name, {}, @datasets);
+  plotDatasets($name, {}, @datasets);
 }
 
 sub queryDataset($dbh, $query) {
@@ -117,16 +84,15 @@ sub makeDataset($title, $data) {
   );
 }
 
-sub plotDatasets($group, $name, $additionalParams, @datasets) {
-  mkdir $group;
+sub plotDatasets($name, $additionalParams, @datasets) {
   unless (@datasets) {
     say "dataset for $group/$name is empty";
     return;
   }
   my $nospace = $name =~ s/\s//gr; # / highlighter
   my $chart = Chart::Gnuplot->new(
-    output => "$group/$nospace.svg",
-    terminal => "svg size 800,500 enhanced font 'Linux Libertine O,14'",
+    output => "$nospace.svg",
+    terminal => "svg size 800,500",
     key => "left top", #outside
     title  => $name,
     xlabel => "Threads",
