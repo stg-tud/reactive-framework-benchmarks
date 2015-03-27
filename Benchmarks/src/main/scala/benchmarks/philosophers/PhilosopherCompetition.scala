@@ -2,14 +2,12 @@ package benchmarks.philosophers
 
 import java.util.concurrent.TimeUnit
 
-import benchmarks.{Workload, EngineParam, Util}
 import benchmarks.Util.deal
 import benchmarks.philosophers.PhilosopherTable.{Seating, Thinking}
+import benchmarks.{EngineParam, Workload}
 import org.openjdk.jmh.annotations._
-import org.openjdk.jmh.infra.{BenchmarkParams, Blackhole, ThreadParams}
-import rescala.turns.Engines
+import org.openjdk.jmh.infra.{BenchmarkParams, ThreadParams}
 
-import scala.annotation.tailrec
 import scala.util.Random
 
 @BenchmarkMode(Array(Mode.Throughput))
@@ -33,7 +31,6 @@ class PhilosopherCompetition {
 }
 
 
-
 @State(Scope.Benchmark)
 class Competition {
 
@@ -43,24 +40,19 @@ class Competition {
   @Param(Array("block", "alternating", "random"))
   var layout: String = _
 
-  @Param(Array("static"))
-  var tableType: String = _
-
   var table: PhilosopherTable = _
 
   var blocks: Array[Array[Seating]] = _
 
   @Setup
   def setup(params: BenchmarkParams, work: Workload, engineParam: EngineParam) = {
-    table = tableType match {
-      case "static" => new PhilosopherTable(philosophers, work.work)(engineParam.engine)
-      case "dynamic" => new DynamicPhilosopherTable(philosophers, work.work)(engineParam.engine)
-    }
+    table = new PhilosopherTable(philosophers, work.work)(engineParam.engine)
+
     blocks = (layout match {
       case "block" =>
         val perThread = table.seatings.size / params.getThreads
         table.seatings.sliding(perThread, perThread)
-      case "alternating" => deal(table.seatings.toList,math.min(params.getThreads, philosophers))
+      case "alternating" => deal(table.seatings.toList, math.min(params.getThreads, philosophers))
       case "third" => deal(table.seatings.sliding(3, 3).map(_.head).toList, params.getThreads)
       case "random" => List(table.seatings)
     }).map(_.toArray).toArray
