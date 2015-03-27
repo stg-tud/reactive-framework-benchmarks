@@ -1,3 +1,0 @@
-"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: riname"
-"benchmarks.simple.Mapping.local","thrpt",8,50.000000,483.869241,34.748615,"ops/ms",REScalaSync
-"benchmarks.simple.Mapping.shared","thrpt",8,50.000000,369.235801,11.223324,"ops/ms",REScalaSync
