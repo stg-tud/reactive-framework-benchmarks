@@ -13,8 +13,8 @@ use Data::Dumper;
 use Chart::Gnuplot;
 use File::Find;
 
-# averaging results works because the sample sizes are currently always the same
-# combining standard deviations seems harder: http://www.burtonsys.com/climate/composite_standard_deviations.html
+# combining standard deviations is not trivial, but would be possible:
+# http://www.burtonsys.com/climate/composite_standard_deviations.html
 
 {
   my $dbPath = ':memory:';
@@ -50,7 +50,7 @@ sub prettyName($name) {
 
 sub query($tableName, $varying, @keys) {
   my $where = join " AND ", map {qq["$_" = ?]} @keys;
-  return qq[SELECT "$varying", avg(Score) FROM "$tableName" WHERE $where GROUP BY "$varying" ORDER BY "$varying"];
+  return qq[SELECT "$varying", sum(Score * Samples) / sum(Samples) FROM "$tableName" WHERE $where GROUP BY "$varying" ORDER BY "$varying"];
 }
 
 sub plotBenchmarksFor($dbh, $tableName, $name, @graphs) {
