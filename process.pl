@@ -64,6 +64,11 @@ use File::Find;
     $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"),
     $query->("stm expensive tried", "benchmarks.conflict.ExpensiveConflict.g:tried", "stm"));
 
+  for my $size (32,64,256) {
+    plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table $size",
+      map { {Title => $_, "Param: engineName" => $_ , "Param: philosophers" => $size, Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat"} } @engines);
+  }
+
   $dbh->commit();
 }
 
