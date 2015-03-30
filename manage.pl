@@ -11,8 +11,8 @@ use Data::Dumper;
 ############### CONFIGURABLE PARAMETERS ###############################
 
 my @THREADS = (1, 2, 4, 8);
-my @PHILOSOPHERS = (32, 256);
-my $FORKS = 1;
+my @PHILOSOPHER_TABLE_SIZES = (32, 256);
+my $JVM_FORKS = 1;
 my @ENGINES = qw< synchron parrp stm >;
 
 ############### END OF CONFIGURABLE PARAMETERS ########################
@@ -70,13 +70,13 @@ sub makeRuns {
         {
           p => { # parameters
             engineName => (join ',', @ENGINES),
-            philosophers => (join ',', @PHILOSOPHERS),
+            philosophers => (join ',', @PHILOSOPHER_TABLE_SIZES),
             layout => "alternating",
           },
           si => "false", # synchronize iterations
           wi => 20, # warmup iterations
           w => "1000ms", # warmup time
-          f => $FORKS, # forks
+          f => $JVM_FORKS, # forks
           i => 10, # iterations
           r => "1000ms", # time per iteration
           t => $size, #threads
