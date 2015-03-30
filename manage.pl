@@ -4,6 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use utf8;
+use English;
 no if $] >= 5.018, warnings => "experimental::smartmatch";
 
 use Data::Dumper;
@@ -18,6 +19,9 @@ my @ENGINES = qw< synchron parrp stm >;
 ############### END OF CONFIGURABLE PARAMETERS ########################
 
 my $EXECUTABLE = './Benchmarks/target/start';
+if ($OSNAME eq "MSWin32") {
+  $EXECUTABLE = "start $EXECUTABLE.bat";
+}
 my $RESULTDIR = 'results';
 
 # stop java from formating numbers with `,` instead of `.`
