@@ -18,7 +18,6 @@ my @ENGINES = qw< synchron parrp stm >;
 ############### END OF CONFIGURABLE PARAMETERS ########################
 
 my $EXECUTABLE = './Benchmarks/target/start';
-my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
 
 # stop java from formating numbers with `,` instead of `.`
