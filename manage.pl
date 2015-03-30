@@ -33,7 +33,6 @@ given($command) {
 
 sub init {
   mkdir $RESULTDIR;
-  mkdir $OUTDIR;
   chdir "Benchmarks";
   system('sbt','clean', 'stage', 'compileJmh');
   chdir "..";
