@@ -4,11 +4,15 @@ use 5.010;
 use strict;
 use warnings;
 use utf8;
+use English;
 no if $] >= 5.018, warnings => "experimental::smartmatch";
 
 use Data::Dumper;
 
 my $EXECUTABLE = './Benchmarks/target/start';
+if ($OSNAME eq "MSWin32") {
+  $EXECUTABLE =~ s#/#\\#g;
+}
 my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
 my @FRAMEWORKS = ("ParRP", "REScalaSTM", "REScalaSync");
