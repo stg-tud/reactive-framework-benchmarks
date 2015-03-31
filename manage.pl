@@ -20,7 +20,7 @@ my @ENGINES = qw< synchron parrp stm >;
 
 my $EXECUTABLE = './Benchmarks/target/start';
 if ($OSNAME eq "MSWin32") {
-  $EXECUTABLE = "$EXECUTABLE.bat";
+  $EXECUTABLE =~ s#/#\\#g
 }
 my $RESULTDIR = 'results';
 
