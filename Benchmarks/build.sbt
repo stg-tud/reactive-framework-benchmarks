@@ -19,13 +19,11 @@ lazy val sidup = ProjectRef(sidupRoot.build, "core")
 
 lazy val scalaReact = ProjectRef(file("../../scala-react"), "scala-react")
 
-jmhSettings
-
 mainClass in Compile := Some("org.openjdk.jmh.Main")
 
 com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings
 
-TaskKey[Unit]("compileJmh") <<= Seq(compile in JmhKeys.Jmh).dependOn
+TaskKey[Unit]("compileJmh") <<= Seq(compile in pl.project13.scala.sbt.SbtJmh.JmhKeys.Jmh).dependOn
 
 //mainClass in (Compile, run) := Some("benchmarks.Main")
 
@@ -70,6 +68,7 @@ libraryDependencies ++= (
   //"de.tuda.stg" %% "rescala" % "0.3.0" ::
   //"de.tuda.stg" %% "sidup-core" % "0.1.1-STM" ::
   //"github.com.ingoem" %% "scala-react" % "1.0" ::
+  "org.scala-stm" %% "scala-stm" % "0.7" ::
   Nil)
 
 initialCommands in console := """
