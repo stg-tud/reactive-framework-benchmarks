@@ -256,6 +256,36 @@ sub selectRun {
       @runs;
     },
 
+    stmbank => sub {
+      my @runs;
+
+      for my $size (@THREADS) {
+        for my $accounts (8,16,32,64,128,256) {
+          my $name = "threads-$size";
+          my $program = makeRunString("stmbank", $name,
+            {
+              p => { # parameters
+                riname => (join ',', @FRAMEWORKS),
+                numberOfAccounts => $accounts,
+              },
+              si => "false", # synchronize iterations
+              wi => 20, # warmup iterations
+              w => "1000ms", # warmup time
+              f => 5, # forks
+              i => 10, # iterations
+              r => "1000ms", # time per iteration
+              t => $size, #threads
+              to => "10s", #timeout
+            },
+            "STMBank.BankAccounts"
+          );
+          push @runs, {name => $name, program => $program};
+        }
+      }
+
+      @runs;
+    },
+
   );
 
   if (defined $selection{$run}) {
