@@ -38,7 +38,7 @@ class ReactiveState {
 class STMState {
 
 
-  @Param(Array("8", "16", "64"))
+  @Param(Array("64"))
   var numberOfAccounts: Int = _
 
   var accounts: Array[Ref[Int]] = _
