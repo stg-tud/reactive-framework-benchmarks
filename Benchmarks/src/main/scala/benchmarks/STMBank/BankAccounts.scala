@@ -16,12 +16,14 @@ import scala.concurrent.stm.{atomic, Ref}
 class ReactiveState {
 
 
-  @Param(Array("8", "16", "64"))
+  @Param(Array("64"))
   var numberOfAccounts: Int = _
+
+  @Param(Array("0.01"))
+  var globalReadChance: Double = _
 
   var accounts: Array[Var[Int]] = _
   var engine: Engine[Turn] = _
-  var random: ThreadLocalRandom = _
 
   @Setup(Level.Iteration)
   def setup(params: BenchmarkParams, engine: EngineParam) = {
@@ -41,8 +43,10 @@ class STMState {
   @Param(Array("64"))
   var numberOfAccounts: Int = _
 
+  @Param(Array("0.01"))
+  var globalReadChance: Double = _
+
   var accounts: Array[Ref[Int]] = _
-  var random: ThreadLocalRandom = _
 
   @Setup(Level.Iteration)
   def setup(params: BenchmarkParams) = {
@@ -65,9 +69,8 @@ class BankAccounts {
 
   @Benchmark
   def reactive(rs: ReactiveState, bh: Blackhole) = {
-    val a1 = ThreadLocalRandom.current().nextInt(rs.numberOfAccounts)
-    val a2 = ThreadLocalRandom.current().nextInt(rs.numberOfAccounts)
-    if (a1 == a2) {
+    val tlr = ThreadLocalRandom.current()
+    if (tlr.nextDouble() < rs.globalReadChance) {
       rs.engine.plan(rs.accounts: _*){ t =>
         val sum = rs.accounts.foldLeft(0)((acc, v) => acc + v.get(t))
         bh.consume(sum)
@@ -75,6 +78,8 @@ class BankAccounts {
       }
     }
     else {
+      val a1 = tlr.nextInt(rs.numberOfAccounts)
+      val a2 = tlr.nextInt(rs.numberOfAccounts)
       val account1 = rs.accounts(a1)
       val account2 = rs.accounts(a2)
       rs.engine.plan(account1, account2){ t =>
@@ -87,9 +92,8 @@ class BankAccounts {
 
   @Benchmark
   def stm(rs: STMState, bh: Blackhole) = {
-    val a1 = ThreadLocalRandom.current().nextInt(rs.numberOfAccounts)
-    val a2 = ThreadLocalRandom.current().nextInt(rs.numberOfAccounts)
-    if (a1 == a2) {
+    val tlr = ThreadLocalRandom.current()
+    if (tlr.nextDouble() < rs.globalReadChance) {
       atomic { t =>
         val sum = rs.accounts.foldLeft(0)((acc, v) => acc + v.get(t))
         bh.consume(sum)
@@ -97,6 +101,8 @@ class BankAccounts {
       }
     }
     else {
+      val a1 = tlr.nextInt(rs.numberOfAccounts)
+      val a2 = tlr.nextInt(rs.numberOfAccounts)
       val account1 = rs.accounts(a1)
       val account2 = rs.accounts(a2)
       atomic { t =>
