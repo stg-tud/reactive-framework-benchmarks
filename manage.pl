@@ -261,13 +261,14 @@ sub selectRun {
       my @runs;
 
       for my $size (@THREADS) {
-        for my $accounts (8,16,32,64,128,256) {
-          my $name = "threads-$size-$accounts";
+        for my $chance ("0.01", "0.001", "0") {
+          my $name = "threads-$size-$chance";
           my $program = makeRunString("stmbank", $name,
             {
               p => { # parameters
                 riname => (join ',', @FRAMEWORKS),
-                numberOfAccounts => $accounts,
+                numberOfAccounts => 256,
+                globalReadChance => $chance,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
