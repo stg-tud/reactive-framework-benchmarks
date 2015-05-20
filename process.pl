@@ -64,6 +64,11 @@ use File::Find;
     $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"),
     $query->("stm expensive tried", "benchmarks.conflict.ExpensiveConflict.g:tried", "stm"));
 
+  for my $accounts (8,16,32,64,128,256) {
+    plotBenchmarksFor($dbh, $table, "stmbank", "Bank Accounts $accounts",
+      (map { {Title => $_, "Param: engineName" => $_, Benchmark => "benchmarks.STMBank.BankAccounts.reactive", "Param: numberOfAccounts" => $accounts } } @engines),
+      {Title => "pureSTM", Benchmark => "benchmarks.STMBank.BankAccounts.stm", "Param: numberOfAccounts" => $accounts} );
+  }
   $dbh->commit();
 }
 
