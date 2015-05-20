@@ -50,7 +50,8 @@ sub run {
 
 sub submitAll {
   for my $run (makeRuns()) {
-    submit(hhlrjob($run->{name}, $run->{program}))
+    say "submitting ", $run->{name};
+    submit(hhlrjob($run->{name}, $run->{program}));
   }
 }
 
@@ -261,7 +262,7 @@ sub selectRun {
 
       for my $size (@THREADS) {
         for my $accounts (8,16,32,64,128,256) {
-          my $name = "threads-$size";
+          my $name = "threads-$size-$accounts";
           my $program = makeRunString("stmbank", $name,
             {
               p => { # parameters
