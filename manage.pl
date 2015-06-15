@@ -11,7 +11,7 @@ use Data::Dumper;
 my $EXECUTABLE = './Benchmarks/target/start';
 my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
-my @FRAMEWORKS = ("REScalaSpin", "REScalaSTM", "REScalaSync");
+my @FRAMEWORKS = ("ParRP", "REScalaSTM", "REScalaSync");
 my @ENGINES = qw< synchron spinning stm >;
 my @THREADS = (1..16,24,32,64);
 

@@ -64,7 +64,7 @@ javaOptions ++= (
 resolvers ++= (Nil)
 
 libraryDependencies ++= (
-  "com.scalarx" %% "scalarx" % "0.2.6" ::
+  "com.lihaoyi" %% "scalarx" % "0.2.8" ::
   //"de.tuda.stg" %% "rescala" % "0.3.0" ::
   //"de.tuda.stg" %% "sidup-core" % "0.1.1-STM" ::
   //"github.com.ingoem" %% "scala-react" % "1.0" ::

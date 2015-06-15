@@ -24,7 +24,7 @@ use File::Find;
 
   my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
 
-  my @frameworks = qw( REScalaSync REScalaSpin REScalaSTM  ); #  scala.rx scala.react SIDUP;
+  my @frameworks = qw( REScalaSync ParRP REScalaSTM ); #  scala.rx scala.react SIDUP;
   my @engines = ("synchron", "spinning", "stm");
 
   importCSV($csvDir, $dbh, $table);
@@ -64,19 +64,19 @@ use File::Find;
     $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"),
     $query->("stm expensive tried", "benchmarks.conflict.ExpensiveConflict.g:tried", "stm"));
 
-  for my $accounts (8,16,32,64,128,256) {
-    plotBenchmarksFor($dbh, $table, "stmbank", "Bank Accounts $accounts",
-      (map { {Title => $_, "Param: engineName" => $_, Benchmark => "benchmarks.STMBank.BankAccounts.reactive", "Param: numberOfAccounts" => $accounts } } @engines),
-      {Title => "pureSTM", Benchmark => "benchmarks.STMBank.BankAccounts.stm", "Param: numberOfAccounts" => $accounts} );
+  for my $chance (0.01, 0.001, 0) {
+    plotBenchmarksFor($dbh, $table, "stmbank", "Bank Accounts $chance",
+      (map { {Title => $_, "Param: engineName" => $_, Benchmark => "benchmarks.STMBank.BankAccounts.reactive", "Param: globalReadChance" => $chance } } @engines),
+      {Title => "pureSTM", Benchmark => "benchmarks.STMBank.BankAccounts.stm", "Param: globalReadChance" => $chance} );
   }
   $dbh->commit();
 }
 
 sub prettyName($name) {
   given ($name) {
-    when (/spinning|REScalaSpin/) { "pessimistic" }
-    when (/stm|REScalaSTM/) { "stm" }
-    when (/synchron|REScalaSync/) { "synchron" }
+    when (/spinning|REScalaSpin|ParRP/) { "ParRP" }
+    when (/stm|REScalaSTM/) { "STM" }
+    when (/synchron|REScalaSync/) { "Synchron" }
     default { $_ }
   }
 }
