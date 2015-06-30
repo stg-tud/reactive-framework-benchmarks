@@ -11,8 +11,8 @@ use Data::Dumper;
 my $EXECUTABLE = './Benchmarks/target/start';
 my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
-my @FRAMEWORKS = ("REScalaSpin", "REScalaSTM", "REScalaSync");
-my @ENGINES = qw< synchron spinning stm >;
+my @FRAMEWORKS = ("REScalaSpin", "REScalaSTM", "REScalaSync", "REScalaPipelining");
+my @ENGINES = qw< synchron spinning stm pipelining>;
 my @THREADS = (1..16,24,32,64);
 
 # stop java from formating numbers with `,` instead of `.`
@@ -324,7 +324,7 @@ sub hhlrjob {
 #BSUB -n 16
 #BSUB -q deflt
 # request exclusive access
-#BUSB -x
+#BSUB -x
 
 module unload openmpi
 module load java

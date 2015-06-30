@@ -6,7 +6,7 @@ import rescala.turns.{Engine, Engines, Turn}
 
 @State(Scope.Benchmark)
 class RIParam {
-  @Param(Array("REScalaSpin", "REScalaSTM", "REScalaSync", "SIDUP", "scala.react", "scala.rx"))
+  @Param(Array("REScalaSpin", "REScalaSTM", "REScalaSync", "REScalaPipelining", "SIDUP", "scala.react", "scala.rx"))
   var riname: String = _
 
   lazy val RI: ReactiveInterface = Util.getRI(riname)

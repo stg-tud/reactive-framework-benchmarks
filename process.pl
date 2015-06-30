@@ -24,8 +24,8 @@ use File::Find;
 
   my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
 
-  my @frameworks = qw( REScalaSync REScalaSpin REScalaSTM  ); #  scala.rx scala.react SIDUP;
-  my @engines = ("synchron", "spinning", "stm");
+  my @frameworks = qw( REScalaSync REScalaSpin REScalaSTM "REScalaPipelining"); #  scala.rx scala.react SIDUP;
+  my @engines = ("synchron", "spinning", "stm", "pipelining");
 
   importCSV($csvDir, $dbh, $table);
 
