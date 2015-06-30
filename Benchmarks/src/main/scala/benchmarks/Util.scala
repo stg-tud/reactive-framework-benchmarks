@@ -7,9 +7,9 @@ import scala.annotation.tailrec
 
 object Util {
   def getRI(name: String): ReactiveInterface = name match {
-    case "REScalaSpin" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.spinningWithBackoff(7))
-    case "REScalaSpinNoWait" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.spinning)
-    case "REScalaSpinWait" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.spinningWait)
+    case "ParRP" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.spinningWithBackoff(7))
+    case "ParRPNoWait" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.spinningWithBackoff(-1))
+    case "ParRPWait" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.spinningWithBackoff(0))
     case "REScalaSTM" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.STM)
     case "REScalaSync" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.synchron)
     case "REScalaPipelining" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.pipelining)
