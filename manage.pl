@@ -325,7 +325,7 @@ sub hhlrjob {
 #BSUB -n 16
 #BSUB -q deflt
 # request exclusive access
-#BUSB -x
+#BSUB -x
 
 module unload openmpi
 module load java
