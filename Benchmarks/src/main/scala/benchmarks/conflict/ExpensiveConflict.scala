@@ -7,6 +7,7 @@ import benchmarks.{EngineParam, Workload}
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.{BenchmarkParams, ThreadParams}
 import rescala._
+import rescala.graph.Spores
 import rescala.turns.{Engine, Ticket, Turn}
 
 @AuxCounters
@@ -30,14 +31,14 @@ class EvaluationCounter {
 @Measurement(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
 @Threads(2)
-class ExpensiveConflict {
+class ExpensiveConflict[S <: Spores] {
 
   var input: AtomicInteger = new AtomicInteger(0)
 
-  var cheapSource: Var[Int] = _
-  var expensiveSource: Var[Int] = _
-  var result: Signal[Int] = _
-  var engine: Engine[Turn] = _
+  var cheapSource: Var[Int, S] = _
+  var expensiveSource: Var[Int, S] = _
+  var result: Signal[Int, S] = _
+  var engine: Engine[S, Turn[S]] = _
   var tried: Int = _
 
   @Setup(Level.Iteration)

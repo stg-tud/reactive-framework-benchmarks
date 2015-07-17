@@ -1,16 +1,17 @@
 package benchmarks.philosophers
 
 import benchmarks.philosophers.PhilosopherTable._
+import rescala.graph.Spores
 import rescala.turns.{Engine, Turn}
 import rescala.{Signals, Var}
 
-class DynamicPhilosopherTable(philosopherCount: Int, work: Long)(implicit engine: Engine[Turn]) extends PhilosopherTable(philosopherCount, work)(engine) {
+  class DynamicPhilosopherTable[S <: Spores](philosopherCount: Int, work: Long)(override implicit val engine: Engine[S, Turn[S]]) extends PhilosopherTable(philosopherCount, work)(engine) {
 
 
-  override def createTable(tableSize: Int): Seq[Seating] = {
+  override def createTable(tableSize: Int): Seq[Seating[S]] = {
     def mod(n: Int): Int = (n + tableSize) % tableSize
 
-    val phils = for (i <- 0 until tableSize) yield Var[Philosopher](Thinking)
+    val phils = for (i <- 0 until tableSize) yield Var[Philosopher, S](Thinking)
 
     val forks = for (i <- 0 until tableSize) yield {
       val nextCircularIndex = mod(i + 1)

@@ -11,7 +11,7 @@ lazy val benchmarks = Project(
 
 lazy val rescalaRoot = RootProject(file("../../REScala"))
 
-lazy val rescala = ProjectRef(rescalaRoot.build, "rescala")
+lazy val rescala = ProjectRef(rescalaRoot.build, "rescalaJVM")
 
 lazy val sidupRoot = RootProject(file("../../SID-UP"))
 

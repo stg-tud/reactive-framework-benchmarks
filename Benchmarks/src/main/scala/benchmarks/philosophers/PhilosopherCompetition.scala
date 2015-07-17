@@ -7,6 +7,7 @@ import benchmarks.Util.deal
 import benchmarks.philosophers.PhilosopherTable.{Seating, Thinking}
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.{BenchmarkParams, Blackhole, ThreadParams}
+import rescala.graph.Spores
 import rescala.turns.Engines
 
 import scala.annotation.tailrec
@@ -17,10 +18,10 @@ import scala.util.Random
 @Warmup(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Measurement(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
-class PhilosopherCompetition {
+class PhilosopherCompetition[S <: Spores] {
 
   @Benchmark
-  def eat(comp: Competition, params: ThreadParams, work: Workload): Unit = {
+  def eat(comp: Competition[S], params: ThreadParams, work: Workload): Unit = {
     val myBlock = comp.blocks(params.getThreadIndex % comp.blocks.length)
     while ( {
       val seating = myBlock(Random.nextInt(myBlock.length))
@@ -35,7 +36,7 @@ class PhilosopherCompetition {
 
 
 @State(Scope.Benchmark)
-class Competition {
+class Competition[S <: Spores] {
 
   @Param(Array("16", "32", "64", "128", "256", "512", "1024", "2048"))
   var philosophers: Int = _
@@ -46,9 +47,9 @@ class Competition {
   @Param(Array("static", "dynamic"))
   var tableType: String = _
 
-  var table: PhilosopherTable = _
+  var table: PhilosopherTable[S] = _
 
-  var blocks: Array[Array[Seating]] = _
+  var blocks: Array[Array[Seating[S]]] = _
 
   @Setup
   def setup(params: BenchmarkParams, work: Workload, engineParam: EngineParam) = {

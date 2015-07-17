@@ -7,13 +7,14 @@ import benchmarks.{EngineParam, Workload}
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.{Blackhole, BenchmarkParams, ThreadParams}
 import rescala._
+import rescala.graph.Spores
 import rescala.turns.{Engine, Ticket, Turn}
 
 import scala.concurrent.stm.{atomic, Ref}
 
 
 @State(Scope.Benchmark)
-class ReactiveState {
+class ReactiveState[S <: Spores] {
 
 
   @Param(Array("64"))
@@ -22,8 +23,8 @@ class ReactiveState {
   @Param(Array("0.01"))
   var globalReadChance: Double = _
 
-  var accounts: Array[Var[Int]] = _
-  var engine: Engine[Turn] = _
+  var engine: Engine[S, Turn[S]] = _
+  var accounts: Array[Var[Int, S]] = _
 
   @Setup(Level.Iteration)
   def setup(params: BenchmarkParams, engine: EngineParam) = {
@@ -65,10 +66,10 @@ class STMState {
 @Measurement(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
 @Threads(2)
-class BankAccounts {
+class BankAccounts[S <: Spores] {
 
   @Benchmark
-  def reactive(rs: ReactiveState, bh: Blackhole) = {
+  def reactive(rs: ReactiveState[S], bh: Blackhole) = {
     val tlr = ThreadLocalRandom.current()
     if (tlr.nextDouble() < rs.globalReadChance) {
       rs.engine.plan(rs.accounts: _*){ t =>

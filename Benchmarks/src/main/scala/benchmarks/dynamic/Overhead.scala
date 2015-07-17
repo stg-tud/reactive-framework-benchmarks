@@ -7,6 +7,7 @@ import benchmarks.{EngineParam, Workload}
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.{BenchmarkParams, ThreadParams}
 import rescala._
+import rescala.graph.Spores
 import rescala.turns.{Engine, Ticket, Turn}
 
 
@@ -17,14 +18,14 @@ import rescala.turns.{Engine, Ticket, Turn}
 @Measurement(iterations = 5, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
 @Threads(2)
-class Overhead {
+class Overhead[S <: Spores] {
 
   var input: AtomicInteger = new AtomicInteger(0)
 
-  var supportSource: Var[Int] = _
-  var baseSource: Var[Int] = _
-  var result: Signal[Int] = _
-  var engine: Engine[Turn] = _
+  var supportSource: Var[Int, S] = _
+  var baseSource: Var[Int, S] = _
+  var result: Signal[Int, S] = _
+  var engine: Engine[S, Turn[S]] = _
 
   @Setup(Level.Iteration)
   def setup(engine: EngineParam, work: Workload) = {

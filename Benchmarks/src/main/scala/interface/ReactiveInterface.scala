@@ -1,5 +1,6 @@
 package interface
 
+import rescala.graph.Spores
 import rescala.turns.Turn
 
 import scala.collection.immutable.Seq
@@ -38,8 +39,9 @@ trait ReactiveInterface {
 
 object ReactiveInterface {
 
-  def rescalaInstance(implicit engine: rescala.turns.Engine[Turn] = rescala.turns.Engines.default): ReactiveInterface = {
-    import rescala._
+  def rescalaInstance[S <: Spores](implicit engine: rescala.turns.Engine[S, Turn[S]] = rescala.turns.Engines.default): ReactiveInterface = {
+    import rescala.Signals
+    import engine._
     new ReactiveInterface {
 
       override type IEvt[A] = Evt[A]

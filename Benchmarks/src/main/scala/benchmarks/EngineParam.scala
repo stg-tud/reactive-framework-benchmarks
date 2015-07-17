@@ -1,7 +1,9 @@
 package benchmarks
 
 import org.openjdk.jmh.annotations.{Param, Scope, State}
-import rescala.turns.{Engine, Engines, Turn}
+import rescala.graph.Spores
+import rescala.synchronization.Engines
+import rescala.turns.{Engine, Turn}
 
 @State(Scope.Benchmark)
 class EngineParam {
@@ -11,8 +13,8 @@ class EngineParam {
   @Param(Array("7"))
   var spinningBackOff: Int = _
 
-  def engine: Engine[Turn] = {
-    if (engineName == "spinning") Engines.spinningWithBackoff(spinningBackOff)
+  def engine[S <: Spores]: Engine[S, Turn[S]] = {
+    if (engineName == "spinning") Engines.spinningWithBackoff(spinningBackOff).asInstanceOf[Engine[S, Turn[S]]]
     else Engines.byName(engineName)
   }
 }

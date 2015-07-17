@@ -7,18 +7,19 @@ import benchmarks.{EngineParam, Workload}
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.{BenchmarkParams, ThreadParams}
 import rescala._
+import rescala.graph.Spores
 import rescala.turns.{Engine, Ticket, Turn}
 
 
 @State(Scope.Benchmark)
-class StackState {
+class StackState[S <: Spores] {
 
   var input: AtomicInteger = new AtomicInteger(0)
 
-  var sources: Array[Var[Int]] = _
-  var results: Array[Signal[Int]] = _
-  var dynamics: Array[Signal[Int]] = _
-  var engine: Engine[Turn] = _
+  var sources: Array[Var[Int, S]] = _
+  var results: Array[Signal[Int, S]] = _
+  var dynamics: Array[Signal[Int, S]] = _
+  var engine: Engine[S, Turn[S]] = _
 
   @Setup(Level.Iteration)
   def setup(params: BenchmarkParams, engine: EngineParam, work: Workload) = {
@@ -44,10 +45,10 @@ class StackState {
 @Measurement(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
 @Fork(1)
 @Threads(8)
-class Stacks {
+class Stacks[S <: Spores] {
 
   @Benchmark
-  def run(state: StackState, params: ThreadParams) = {
+  def run(state: StackState[S], params: ThreadParams) = {
     val index = params.getThreadIndex % params.getThreadCount
     state.sources(index).set(state.input.incrementAndGet())(state.engine)
     state.dynamics(index).now(Ticket.dynamic(state.engine))

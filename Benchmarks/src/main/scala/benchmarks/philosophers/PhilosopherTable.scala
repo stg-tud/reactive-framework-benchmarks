@@ -5,12 +5,14 @@ import java.util.concurrent.atomic.AtomicInteger
 import benchmarks.philosophers.PhilosopherTable._
 import org.openjdk.jmh.infra.Blackhole
 import rescala.Signals.lift
+import rescala.graph.Spores
 import rescala.turns.{Engine, Turn}
 import rescala.{Signal, Var}
 
 import scala.annotation.tailrec
 
-class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: Engine[Turn]) {
+class PhilosopherTable[S <: Spores](philosopherCount: Int, work: Long)(implicit val engine: Engine[S, Turn[S]]) {
+
 
   val seatings = createTable(philosopherCount)
 
@@ -41,10 +43,10 @@ class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: E
     }
 
 
-  def createTable(tableSize: Int): Seq[Seating] = {
+  def createTable(tableSize: Int): Seq[Seating[S]] = {
     def mod(n: Int): Int = (n + tableSize) % tableSize
 
-    val phils = for (i <- 0 until tableSize) yield Var[Philosopher](Thinking)
+    val phils = for (i <- 0 until tableSize) yield Var[Philosopher, S](Thinking)
 
     val forks = for (i <- 0 until tableSize) yield {
       val nextCircularIndex = mod(i + 1)
@@ -58,8 +60,8 @@ class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: E
   }
 
 
-  def tryEat(seating: Seating): Boolean =
-    implicitly[Engine[Turn]].plan(seating.philosopher) { turn =>
+  def tryEat(seating: Seating[S]): Boolean =
+    implicitly[Engine[S, Turn[S]]].plan(seating.philosopher) { turn =>
       val forksWereFree = if (seating.vision(turn) == Ready) {
         seating.philosopher.admit(Hungry)(turn)
         true
@@ -69,7 +71,7 @@ class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: E
       forksWereFree
     }
 
-  def eatOnce(seating: Seating) = repeatUntilTrue(tryEat(seating))
+  def eatOnce(seating: Seating[S]) = repeatUntilTrue(tryEat(seating))
 
 }
 
@@ -94,7 +96,8 @@ object PhilosopherTable {
 
   // ============================================ Entity Creation =========================================================
 
-  case class Seating(placeNumber: Int, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], vision: Signal[Vision])
+  case class Seating[S <: Spores](placeNumber: Int, philosopher: Var[Philosopher, S], leftFork: Signal[Fork, S], rightFork: Signal[Fork, S], vision: Signal[Vision, S])
+
 
 
   @tailrec // unrolled into loop by compiler
