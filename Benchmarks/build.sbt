@@ -69,6 +69,8 @@ libraryDependencies ++= (
   //"de.tuda.stg" %% "sidup-core" % "0.1.1-STM" ::
   //"github.com.ingoem" %% "scala-react" % "1.0" ::
   "org.scala-stm" %% "scala-stm" % "0.7" ::
+  "io.reactivex" % "rxjava" % "1.0.12" ::
+  "io.reactivex" %% "rxscala" % "0.25.0" ::
   Nil)
 
 initialCommands in console := """
