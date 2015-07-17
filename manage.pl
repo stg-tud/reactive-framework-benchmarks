@@ -19,7 +19,7 @@ my @THREADS = (1..16,24,32,64);
 $ENV{'LANG'} = 'en_US.UTF-8';
 
 my $command = shift @ARGV;
-my @RUN = @ARGV ? @ARGV : qw< prim simple philosophers dynamicStacks expensiveConflict >;
+my @RUN = @ARGV ? @ARGV : qw< prim simple pipeline philosophers dynamicStacks expensiveConflict >;
 
 say "selected @RUN";
 
@@ -139,6 +139,33 @@ sub selectRun {
         push @runs, {name => $name, program => $program};
       }
 
+      @runs;
+    },
+	
+    pipeline => sub {
+      my @runs;
+
+      for my $size (@THREADS) {
+          my $name = "tsize-$size";
+          my $program = makeRunString("pipeline", $name,
+            {
+              p => { # parameters
+                engineName => (join ',', @ENGINES),
+                pipelineLength => "8,16,32,64,128,256",
+              },
+              si => "false", # synchronize iterations
+              wi => 20, # warmup iterations
+              w => "1000ms", # warmup time
+              f => 5, # forks
+              i => 10, # iterations
+              r => "1000ms", # time per iteration
+              t => $size, #threads
+              to => "10s", #timeout
+            },
+            "pipeline"
+          );
+          push @runs, {name => $name, program => $program};
+      }
       @runs;
     },
 
