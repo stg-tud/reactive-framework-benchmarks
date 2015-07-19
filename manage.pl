@@ -11,15 +11,15 @@ use Data::Dumper;
 my $EXECUTABLE = './Benchmarks/target/start';
 my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
-my @FRAMEWORKS = ("ParRP", "REScalaSTM", "REScalaSync", "REScalaPipelining");
-my @ENGINES = qw< synchron spinning stm pipelining >;
+my @FRAMEWORKS = ("ParRP", "REScalaSync", "REScalaPipeliningParallelFrames" , "REScalaPipeliningSequentialFrames");
+my @ENGINES = qw< synchron spinning pipeliningParallelFraming pipeliningSequentialFraming>;
 my @THREADS = (1..16,24,32,64);
 
 # stop java from formating numbers with `,` instead of `.`
 $ENV{'LANG'} = 'en_US.UTF-8';
 
 my $command = shift @ARGV;
-my @RUN = @ARGV ? @ARGV : qw< prim simple pipeline philosophers dynamicStacks expensiveConflict >;
+my @RUN = @ARGV ? @ARGV : qw< pipeline philosophers >;
 
 say "selected @RUN";
 
@@ -152,6 +152,7 @@ sub selectRun {
               p => { # parameters
                 engineName => (join ',', @ENGINES),
                 pipelineLength => "8,16,32,64,128,256",
+                work => 100000,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
@@ -182,6 +183,7 @@ sub selectRun {
                 engineName => (join ',', @ENGINES),
                 philosophers => "32,64,256",
                 layout => $layout,
+                work => 100000,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
@@ -362,7 +364,7 @@ echo "------------------------------"
 ls -al /work/local
 echo "------------------------------"
 
-export JAVA_OPTS="-Xmx1024m -Xms1024m" # -Djava.io.tmpdir=\$TMP
+export JAVA_OPTS="-Xmx1024m -Xms1024m -Djmh.ignoreLock=true" # -Djava.io.tmpdir=\$TMP
 $programstring
 
 ENDPROGRAM

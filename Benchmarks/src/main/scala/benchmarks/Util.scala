@@ -12,7 +12,8 @@ object Util {
     case "ParRPWait" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.spinningWithBackoff(0))
     case "REScalaSTM" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.STM)
     case "REScalaSync" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.synchron)
-    case "REScalaPipelining" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.pipelining)
+    case "REScalaPipeliningParallelFrames" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.pipeliningParallelFraming)
+    case "REScalaPipeliningSequentialFrames" => interface.ReactiveInterface.rescalaInstance(rescala.turns.Engines.pipeliningSequentialFraming)
     case "SIDUP" => interface.ReactiveInterface.sidup
     case "scala.react" => ReactiveInterface.scalaReact()
     case "scala.rx" => ReactiveInterface.scalaRx

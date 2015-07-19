@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-use 5.020;
+use 5.016;
 
 use strict;
 use warnings;
@@ -12,6 +12,7 @@ use Text::CSV_XS qw( csv );
 use Data::Dumper;
 use Chart::Gnuplot;
 use File::Find;
+use Data::Dump qw(dump);
 
 # averaging results works because the sample sizes are currently always the same
 # combining standard deviations seems harder: http://www.burtonsys.com/climate/composite_standard_deviations.html
@@ -19,23 +20,24 @@ use File::Find;
 {
   my $dbPath = ':memory:';
   my $table = 'results';
-  my $csvDir = 'resultStore';
+  my $csvDir = 'results';
   my $outDir = 'fig';
 
   my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
 
-  my @frameworks = qw( REScalaSync ParRP REScalaSTM REScalaPipelining); #  scala.rx scala.react SIDUP;
-  my @engines = ("synchron", "spinning", "stm", "pipelining");
+  my @frameworks = qw( REScalaSync ParRP REScalaSTM REScalaPipeliningParallelFrames REScalaPipeliningSequentialFrames); #  scala.rx scala.react SIDUP;
+  my @engines = ("synchron", "spinning", "pipeliningParallelFraming" , "pipeliningSequentialFraming");
 
   importCSV($csvDir, $dbh, $table);
 
   mkdir $outDir;
   chdir $outDir;
 
-  plotBenchmarksFor($dbh, $table, "simple", "Simple Local State",
-    map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.local"} } @frameworks);
-  plotBenchmarksFor($dbh, $table, "simple", "Simple Shared State",
-    map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.shared"} } @frameworks);
+
+    # plotBenchmarksFor($dbh, $table, "simple", "Simple Local State",
+    #map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.local"} } @frameworks);
+    #plotBenchmarksFor($dbh, $table, "simple", "Simple Shared State",
+    #map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.shared"} } @frameworks);
   for my $layout (qw<alternating random third block>) {
     plotBenchmarksFor($dbh, $table, "philosophers", $layout,
       map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: layout" => $layout} } @engines);
@@ -43,32 +45,60 @@ use File::Find;
   plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table",
     map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat"} } @engines);
 
-  plotBenchmarksFor($dbh, $table, "grid", "Prime Grid",
-    map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
+    plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table 32",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: philosophers" => 32 } } @engines);
 
-  plotBenchmarksFor($dbh, $table, "stacks", "Dynamic",
-    map {{Title => $_, "Param: work" => 0, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
+    
+    plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table 64",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: philosophers" => 64 } } @engines);
+    
+    plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table 256",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: philosophers" => 256 } } @engines);
+	
+    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 8",
+      map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 8} } @engines);
+    
+    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 16",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline" ,"Param: pipelineLength" => 16}  } @engines);
+    
+    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 32",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 32}  } @engines);
+    
+    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 64",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 64}  } @engines);
+    
+    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 128",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 128}  } @engines);
+    
+    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 256",
+    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 256}  } @engines);
 
-  # plotBenchmarksFor($dbh, $table, "philosophersBackoff", "backoff",
-  #   map { {Title => $_,  "Param: engineName" => 'spinning' , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: spinningBackOff" => $_ } } (0..9) );
+    #plotBenchmarksFor($dbh, $table, "grid", "Prime Grid",
+    #  map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
 
-  my $query = queryDataset($dbh, query($table, "Param: work", "Benchmark", "Param: engineName"));
-  plotDatasets("conflicts", "Asymmetric Workloads", {xlabel => "Work"},
-    $query->("pessimistic cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "spinning"),
-    $query->("pessimistic expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "spinning"),
-    $query->("stm cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "stm"),
-    $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"));
+    #plotBenchmarksFor($dbh, $table, "stacks", "Dynamic",
+    #  map {{Title => $_, "Param: work" => 0, "Param: engineName" => $_ , Benchmark => "benchmarks.dynamic.Stacks.run" }} @engines);
 
-  plotDatasets("conflicts", "STM aborts", {xlabel => "Work"},
-    $query->("stm cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "stm"),
-    $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"),
-    $query->("stm expensive tried", "benchmarks.conflict.ExpensiveConflict.g:tried", "stm"));
+    # plotBenchmarksFor($dbh, $table, "philosophersBackoff", "backoff",
+    # map { {Title => $_,  "Param: engineName" => 'spinning' , Benchmark => #"benchmarks.philosophers.PhilosopherCompetition.eat", "Param: spinningBackOff" => $_ } } (0..9) );
 
-  for my $chance (0.01, 0.001, 0) {
-    plotBenchmarksFor($dbh, $table, "stmbank", "Bank Accounts $chance",
-      (map { {Title => $_, "Param: engineName" => $_, Benchmark => "benchmarks.STMBank.BankAccounts.reactive", "Param: globalReadChance" => $chance } } @engines),
-      {Title => "pureSTM", Benchmark => "benchmarks.STMBank.BankAccounts.stm", "Param: globalReadChance" => $chance} );
-  }
+    #  my $query = queryDataset($dbh, query($table, "Param: work", "Benchmark", "Param: engineName"));
+    # plotDatasets("conflicts", "Asymmetric Workloads", {xlabel => "Work"},
+    #   $query->("pessimistic cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "spinning"),
+    #   $query->("pessimistic expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "spinning"),
+    #   $query->("stm cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "stm"),
+    #  $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"));
+
+    # plotDatasets("conflicts", "STM aborts", {xlabel => "Work"},
+    #   $query->("stm cheap", "benchmarks.conflict.ExpensiveConflict.g:cheap", "stm"),
+    #   $query->("stm expensive", "benchmarks.conflict.ExpensiveConflict.g:expensive", "stm"),
+    #$query->("stm expensive tried", "benchmarks.conflict.ExpensiveConflict.g:tried", "stm"));
+
+    #for my $chance (0.01, 0.001, 0) {
+    #plotBenchmarksFor($dbh, $table, "stmbank", "Bank Accounts $chance",
+    #  (map { {Title => $_, "Param: engineName" => $_, Benchmark => "benchmarks.STMBank.BankAccounts.reactive", #"Param: globalReadChance" => $chance } } @engines),
+    #  {Title => "pureSTM", Benchmark => "benchmarks.STMBank.BankAccounts.stm", "Param: globalReadChance" => $chance} );
+    #}
   $dbh->commit();
 }
 
@@ -77,7 +107,8 @@ sub prettyName($name) {
     when (/spinning|REScalaSpin|ParRP/) { "ParRP" }
     when (/stm|REScalaSTM/) { "STM" }
     when (/synchron|REScalaSync/) { "Synchron" }
-    when (/pipelining|REScalaPipelining/) { "Pipelining" }
+    when (/pipeliningParallelFraming|REScalaPipeliningParallelFrames/) { "Pipelining Parallel Framing" }
+    when (/pipeliningSequentialFraming|REScalaPipeliningSequentialFrames/) { "Pipelining Sequential Framing" }
     default { $_ }
   }
 }
