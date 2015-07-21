@@ -336,13 +336,16 @@ module load java
 echo "--------- processors ---------"
 nproc
 echo "------------------------------"
+who
+echo "------------------------------"
 ls -al /work/local
-ls -al /tmp/jmh.lock
-rm /tmp/jmh.lock
 echo "------------------------------"
 
-export JAVA_OPTS="-Xmx1024m -Xms1024m" # -Djava.io.tmpdir=\$TMP
+rm -r /tmp/\$(whoami)
+mkdir /tmp/\$(whoami)
+export JAVA_OPTS="-Xmx1024m -Xms1024m -Djava.io.tmpdir=/tmp/\$(whoami)"
 $programstring
+rm -r /tmp/\$(whoami)
 
 ENDPROGRAM
 }
