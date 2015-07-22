@@ -1,0 +1,2 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: engineName","Param: pipelineLength","Param: spinningBackOff","Param: work"
+"benchmarks.pipeline.Pipeline.updatePipeline","thrpt",24,13.000000,3.532903,0.628742,"ops/ms",pipeliningSequentialFraming,16,7,10000
