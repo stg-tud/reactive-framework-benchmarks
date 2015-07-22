@@ -28,6 +28,7 @@ class Pipeline {
   def updatePipeline(comp: Competition, params: ThreadParams, work: Workload): Unit = {
     comp.pipelineEngine.plan(comp.pipelineRoot){implicit turn =>
       val newValue = comp.pipelineRoot.get + 1
+      work.consume() // Consume work here representative for reevaluating the source
       comp.pipelineRoot.admit(newValue)
     }
   }
@@ -55,7 +56,7 @@ class Competition {
     for (i <- 2 to pipelineLength) {
       val reactive = currentReactive
       currentReactive = Signals.static(reactive)(implicit turn => {
-        work.consume()
+        work.consume() // Consume work for reevaluation
         reactive.get + 1})
     }
   }

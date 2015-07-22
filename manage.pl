@@ -13,7 +13,7 @@ my $OUTDIR = 'out';
 my $RESULTDIR = 'results';
 my @FRAMEWORKS = ("ParRP", "REScalaSync", "REScalaPipeliningParallelFrames" , "REScalaPipeliningSequentialFrames");
 my @ENGINES = qw< synchron spinning pipeliningParallelFraming pipeliningSequentialFraming>;
-my @THREADS = (1..16,24,32,64);
+my @THREADS = (1..24);
 
 # stop java from formating numbers with `,` instead of `.`
 $ENV{'LANG'} = 'en_US.UTF-8';
@@ -145,14 +145,17 @@ sub selectRun {
     pipeline => sub {
       my @runs;
 
+    for my $work (0, 10000,100000, 1000000) {
       for my $size (@THREADS) {
-          my $name = "tsize-$size";
+          for my $length (8,16,32,1024) {
+              for my $engine (@ENGINES) {
+          my $name = "pipeline-size-$size-work-$work-length-$length-engine-$engine";
           my $program = makeRunString("pipeline", $name,
             {
               p => { # parameters
-                engineName => (join ',', @ENGINES),
-                pipelineLength => "8,16,32,64,128,256",
-                work => 100000,
+                engineName => $engine,
+                pipelineLength => $length,
+                work => $work,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
@@ -166,24 +169,30 @@ sub selectRun {
             "pipeline"
           );
           push @runs, {name => $name, program => $program};
+            
+              }
+          }
       }
-      @runs;
+    }
+        @runs
     },
 
+    
     philosophers => sub {
       my @runs;
-
-      for my $size (@THREADS) {
-        for my $layout (qw<alternating random third block>) {
-          my $name = "threads-$size-layout-$layout";
+      for my $work (0, 10000, 100000, 10000000) {
+          for my $size (@THREADS) {
+              for my $engine (@ENGINES) {
+                  for my $layout (qw<random third second>) {
+          my $name = "threads-$size-layout-$layout-work-$work-engine-$engine";
           my $program = makeRunString("philosophers", $name,
             {
               p => { # parameters
                 tableType => 'static',
-                engineName => (join ',', @ENGINES),
+                engineName => $engine,
                 philosophers => "32,64,256",
                 layout => $layout,
-                work => 100000,
+                work => $work,
               },
               si => "false", # synchronize iterations
               wi => 20, # warmup iterations
@@ -197,9 +206,10 @@ sub selectRun {
             "philosophers"
           );
           push @runs, {name => $name, program => $program};
-        }
+                  }
+              }
+          }
       }
-
       @runs;
     },
 

@@ -20,7 +20,7 @@ use Data::Dump qw(dump);
 {
   my $dbPath = ':memory:';
   my $table = 'results';
-  my $csvDir = 'results';
+  my $csvDir = 'resultStorePipelining';
   my $outDir = 'fig';
 
   my $dbh = DBI->connect("dbi:SQLite:dbname=". $dbPath,"","",{AutoCommit => 0,PrintError => 1});
@@ -38,40 +38,26 @@ use Data::Dump qw(dump);
     #map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.local"} } @frameworks);
     #plotBenchmarksFor($dbh, $table, "simple", "Simple Shared State",
     #map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.shared"} } @frameworks);
-  for my $layout (qw<alternating random third block>) {
-    plotBenchmarksFor($dbh, $table, "philosophers", $layout,
-      map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: layout" => $layout} } @engines);
-  }
-  plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat"} } @engines);
-
-    plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table 32",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: philosophers" => 32 } } @engines);
-
+    # for my $layout (qw<alternating random third block>) {
+    #   plotBenchmarksFor($dbh, $table, "philosophers", $layout,
+    #     map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: layout" => $layout} } @engines);
+    # }
+    # plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table",
+    #map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  #"benchmarks.philosophers.PhilosopherCompetition.eat"} } @engines);
     
-    plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table 64",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: philosophers" => 64 } } @engines);
     
-    plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table 256",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: philosophers" => 256 } } @engines);
-	
-    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 8",
-      map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 8} } @engines);
+    for my $work (0,10000,100000, 1000000) {
+        for my $length (8,16,32,1024) {
+            plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline $length Work $work",
+            map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline" ,"Param: pipelineLength" => $length, "Param: work" => $work }  } @engines);
+        }
+        for my $philos(32,64,256) {
+            plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table $philos Work $work",
+            map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: philosophers" => $philos , "Param: work" => $work } } @engines);
+        }
+    }
     
-    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 16",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline" ,"Param: pipelineLength" => 16}  } @engines);
     
-    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 32",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 32}  } @engines);
-    
-    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 64",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 64}  } @engines);
-    
-    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 128",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 128}  } @engines);
-    
-    plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline 256",
-    map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline", "Param: pipelineLength" => 256}  } @engines);
 
     #plotBenchmarksFor($dbh, $table, "grid", "Prime Grid",
     #  map { {Title => $_, "Param: riname" => $_, Benchmark => "benchmarks.grid.Bench.primGrid" } } @frameworks);
@@ -106,9 +92,9 @@ sub prettyName($name) {
   given ($name) {
     when (/spinning|REScalaSpin|ParRP/) { "ParRP" }
     when (/stm|REScalaSTM/) { "STM" }
-    when (/synchron|REScalaSync/) { "Synchron" }
-    when (/pipeliningParallelFraming|REScalaPipeliningParallelFrames/) { "Pipelining Parallel Framing" }
-    when (/pipeliningSequentialFraming|REScalaPipeliningSequentialFrames/) { "Pipelining Sequential Framing" }
+    when (/synchron|REScalaSync/) { "Sequential" }
+    when (/pipeliningParallelFraming|REScalaPipeliningParallelFrames/) { "Pipelining Par" }
+    when (/pipeliningSequentialFraming|REScalaPipeliningSequentialFrames/) { "Pipelining Seq" }
     default { $_ }
   }
 }
@@ -155,18 +141,35 @@ sub plotDatasets($group, $name, $additionalParams, @datasets) {
     say "dataset for $group/$name is empty";
     return;
   }
+    
+
   my $nospace = $name =~ s/\s//gr; # / highlighter
+
+    for my $t ("epslatex size 18cm,6.5cm color colortext", "svg size 800,600 enhanced font 'Linux Libertine O,14'") {
+        my $ext = ($t =~ /svg/) ? "svg" : "tex";
   my $chart = Chart::Gnuplot->new(
-    output => "$group/$nospace.svg",
-    terminal => "svg size 800,500 enhanced font 'Linux Libertine O,14'",
-    key => "left top", #outside
-    title  => $name,
-    xlabel => "Threads",
+    output => "$group/$nospace.$ext",
+    terminal => $t,
+    key => "rmargin center vertical samplen 3 width -5 ", #outside
+    title  => {
+        text => $name,
+        offset => "0,-0.5"
+    },
+    xlabel => {
+        text => "Threads",
+        offset => "0,1",
+    },
     #logscale => "x 2; set logscale y 10",
-    ylabel => "Operations Per Millisecond",
+    ylabel => {
+        text =>"Operations Per Millisecond",
+        offset =>"1,0",
+    },
+    bmargin => "-10",
+    
     %$additionalParams
   );
   $chart->plot2d(@datasets);
+    }
 }
 
 sub updateTable($dbh, $tableName, @columns) {

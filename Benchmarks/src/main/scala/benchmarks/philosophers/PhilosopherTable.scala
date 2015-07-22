@@ -19,26 +19,30 @@ class PhilosopherTable(philosopherCount: Int, work: Long)(implicit val engine: E
   seatings.foreach { seating =>
     seating.vision.observe { state =>
       if (state == Eating) {
-        Blackhole.consumeCPU(work)
+       
       }
     }
   }
 
 
-  def calcFork(leftName: String, rightName: String)(leftState: Philosopher, rightState: Philosopher): Fork =
+  def calcFork(leftName: String, rightName: String)(leftState: Philosopher, rightState: Philosopher): Fork = {
+     Blackhole.consumeCPU(work)
     (leftState, rightState) match {
       case (Thinking, Thinking) => Free
       case (Hungry, _) => Taken(leftName)
       case (_, Hungry) => Taken(rightName)
     }
+  }
 
-  def calcVision(ownName: String)(leftFork: Fork, rightFork: Fork): Vision =
+  def calcVision(ownName: String)(leftFork: Fork, rightFork: Fork): Vision = {
+     Blackhole.consumeCPU(work)
     (leftFork, rightFork) match {
       case (Free, Free) => Ready
       case (Taken(`ownName`), Taken(`ownName`)) => Eating
       case (Taken(name), _) => WaitingFor(name)
       case (_, Taken(name)) => WaitingFor(name)
     }
+  }
 
 
   def createTable(tableSize: Int): Seq[Seating] = {

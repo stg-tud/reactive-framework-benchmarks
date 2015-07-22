@@ -40,7 +40,7 @@ class Competition {
   @Param(Array("16", "32", "64", "128", "256", "512", "1024", "2048"))
   var philosophers: Int = _
 
-  @Param(Array("block", "alternating", "random", "third"))
+  @Param(Array("block", "alternating", "random", "third", "second"))
   var layout: String = _
 
   @Param(Array("static", "dynamic"))
@@ -62,6 +62,7 @@ class Competition {
         table.seatings.sliding(perThread, perThread)
       case "alternating" => deal(table.seatings.toList,math.min(params.getThreads, philosophers))
       case "third" => deal(table.seatings.sliding(3, 3).map(_.head).toList, params.getThreads)
+      case "second" => deal(table.seatings.sliding(3, 2).map(_.head).toList, params.getThreads)
       case "random" => List(table.seatings)
     }).map(_.toArray).toArray
   }
