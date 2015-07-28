@@ -180,18 +180,18 @@ sub selectRun {
     
     philosophers => sub {
       my @runs;
-      for my $work (0, 10000, 100000, 10000000) {
+      for my $work (0, 10000, 100000, 1000000) {
           for my $size (@THREADS) {
               for my $engine (@ENGINES) {
-                  for my $layout (qw<random third second>) {
-          my $name = "threads-$size-layout-$layout-work-$work-engine-$engine";
+                  #    for my $layout (qw<random third second>) {
+          my $name = "threads-$size-work-$work-engine-$engine";
           my $program = makeRunString("philosophers", $name,
             {
               p => { # parameters
                 tableType => 'static',
                 engineName => $engine,
                 philosophers => "32,64,256",
-                layout => $layout,
+                layout => "random,third,second",
                 work => $work,
               },
               si => "false", # synchronize iterations
@@ -206,7 +206,7 @@ sub selectRun {
             "philosophers"
           );
           push @runs, {name => $name, program => $program};
-                  }
+                  # }
               }
           }
       }

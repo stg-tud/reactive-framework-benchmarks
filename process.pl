@@ -48,12 +48,16 @@ use Data::Dump qw(dump);
     
     for my $work (0,10000,100000, 1000000) {
         for my $length (8,16,32,1024) {
-            plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline $length Work $work",
+            plotBenchmarksFor($dbh, $table, "pipeline", "Pipeline of Length $length, consumeCPU($work)", "Pipeline $length Work $work",
             map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.pipeline.Pipeline.updatePipeline" ,"Param: pipelineLength" => $length, "Param: work" => $work }  } @engines);
-        }
+        }    }
+    
+    for my $work (0,10000,100000, 1000000) {
         for my $philos(32,64,256) {
-            plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table $philos Work $work",
-            map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: philosophers" => $philos , "Param: work" => $work } } @engines);
+            for my $layout (qw< random third second >) {
+                plotBenchmarksFor($dbh, $table, "philosophers", "$philos Philosopher at a Table, consumeCPU($work), Update Strategy Layout $layout", "PhilosopherTable $philos Work $work Layout $layout",
+                map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: philosophers" => $philos , "Param: work" => $work, "Param: layout" => $layout } } @engines);
+            }
         }
     }
     
@@ -104,14 +108,14 @@ sub query($tableName, $varying, @keys) {
   return qq[SELECT "$varying", avg(Score) FROM "$tableName" WHERE $where GROUP BY "$varying" ORDER BY "$varying"];
 }
 
-sub plotBenchmarksFor($dbh, $tableName, $group, $name, @graphs) {
+sub plotBenchmarksFor($dbh, $tableName, $group, $name, $file, @graphs) {
   my @datasets;
   for my $graph (@graphs) {
     my $title = delete $graph->{"Title"};
     my @keys = keys %{$graph};
     push @datasets, queryDataset($dbh, query($tableName, "Threads", @keys))->(prettyName($title) // "unnamed", values %{$graph});
   }
-  plotDatasets($group, $name, {}, @datasets);
+  plotDatasets($group, $name, $file, {}, @datasets);
 }
 
 sub queryDataset($dbh, $query) {
@@ -135,7 +139,7 @@ sub makeDataset($title, $data) {
   );
 }
 
-sub plotDatasets($group, $name, $additionalParams, @datasets) {
+sub plotDatasets($group, $name, $file,  $additionalParams, @datasets) {
   mkdir $group;
   unless (@datasets) {
     say "dataset for $group/$name is empty";
@@ -143,8 +147,7 @@ sub plotDatasets($group, $name, $additionalParams, @datasets) {
   }
     
 
-  my $nospace = $name =~ s/\s//gr; # / highlighter
-
+  my $nospace = $file =~ s/\s//gr; # / highlighter
     for my $t ("epslatex size 18cm,6.5cm color colortext", "svg size 800,600 enhanced font 'Linux Libertine O,14'") {
         my $ext = ($t =~ /svg/) ? "svg" : "tex";
   my $chart = Chart::Gnuplot->new(
@@ -157,11 +160,11 @@ sub plotDatasets($group, $name, $additionalParams, @datasets) {
     },
     xlabel => {
         text => "Threads",
-        offset => "0,1",
+        offset => "0,0.5",
     },
     #logscale => "x 2; set logscale y 10",
     ylabel => {
-        text =>"Operations Per Millisecond",
+        text =>"Evaluations per Millisecond",
         offset =>"1,0",
     },
     bmargin => "-10",
