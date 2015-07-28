@@ -1,0 +1,4 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: engineName","Param: layout","Param: philosophers","Param: spinningBackOff","Param: tableType","Param: work"
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",9,50.000000,29.948089,0.054624,"ops/ms",spinning,third,32,7,static,10000
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",9,50.000000,31.098187,0.049341,"ops/ms",spinning,third,64,7,static,10000
+"benchmarks.philosophers.PhilosopherCompetition.eat","thrpt",9,50.000000,31.567751,0.036814,"ops/ms",spinning,third,256,7,static,10000
