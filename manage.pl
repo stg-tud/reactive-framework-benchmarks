@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use utf8;
 use English;
+use Cwd 'abs_path';
 no if $] >= 5.018, warnings => "experimental::smartmatch";
 
 use Data::Dumper;
@@ -21,6 +22,8 @@ my @THREADS = (1..16,24,32,64);
 
 # stop java from formating numbers with `,` instead of `.`
 $ENV{'LANG'} = 'en_US.UTF-8';
+my $OWNPATH = abs_path($0);
+$ENV{'JAVA_OPTS'} = qq[-cp "$OWNPATH/Benchmarks/target/scala-2.11/jmh-classes"];
 
 my $command = shift @ARGV;
 my @RUN = @ARGV ? @ARGV : qw< prim simple philosophers dynamicStacks expensiveConflict >;
@@ -39,7 +42,7 @@ sub init {
   mkdir $OUTDIR;
   mkdir "$RESULTDIR/$_" for @RUN;
   chdir "Benchmarks";
-  system('sbt','clean', 'stage', 'compileJmh');
+  system('sbt','clean', 'jmh:stage');
   chdir "..";
 }
 

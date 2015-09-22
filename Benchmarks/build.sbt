@@ -2,7 +2,7 @@ name := "benchmarks"
 
 version := "0.0.0"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 lazy val benchmarks = Project(
   id = "benchmarks",
@@ -23,7 +23,9 @@ mainClass in Compile := Some("org.openjdk.jmh.Main")
 
 com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings
 
-TaskKey[Unit]("compileJmh") <<= Seq(compile in pl.project13.scala.sbt.SbtJmh.JmhKeys.Jmh).dependOn
+enablePlugins(JmhPlugin)
+
+//TaskKey[Unit]("compileJmh") <<= Seq(compile in pl.project13.scala.sbt.SbtJmh.JmhKeys.Jmh).dependOn
 
 //mainClass in (Compile, run) := Some("benchmarks.Main")
 
@@ -69,7 +71,7 @@ libraryDependencies ++= (
   //"de.tuda.stg" %% "sidup-core" % "0.1.1-STM" ::
   //"github.com.ingoem" %% "scala-react" % "1.0" ::
   "org.scala-stm" %% "scala-stm" % "0.7" ::
-  "io.reactivex" % "rxjava" % "1.0.12" ::
+  "io.reactivex" % "rxjava" % "1.0.14" ::
   "io.reactivex" %% "rxscala" % "0.25.0" ::
   Nil)
 
