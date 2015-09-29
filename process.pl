@@ -125,8 +125,8 @@ sub plotDatasets($group, $name, $additionalParams, @datasets) {
   }
   my $nospace = $name =~ s/\s//gr; # / highlighter
   my $chart = Chart::Gnuplot->new(
-    output => "$group/$nospace.svg",
-    terminal => "svg size 800,500 enhanced font 'Linux Libertine O,14'",
+    output => "$group/$nospace.pdf",
+    terminal => "pdf size 8,5 enhanced font 'Linux Libertine O,14'",
     key => "left top", #outside
     title  => $name,
     xlabel => "Threads",

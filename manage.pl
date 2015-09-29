@@ -22,8 +22,11 @@ my @THREADS = (1..16,24,32,64);
 
 # stop java from formating numbers with `,` instead of `.`
 $ENV{'LANG'} = 'en_US.UTF-8';
-my $OWNPATH = abs_path($0);
-$ENV{'JAVA_OPTS'} = qq[-cp "$OWNPATH/Benchmarks/target/scala-2.11/jmh-classes"];
+# my $OWNPATH = abs_path($0);
+# $OWNPATH =~ s#/[^/]*$##;
+# my $JMH_CLASSPATH = qq[-cp "$OWNPATH/Benchmarks/target/scala-2.11/jmh-classes"];
+# say $JMH_CLASSPATH;
+# $ENV{'JAVA_OPTS'} = $JMH_CLASSPATH;
 
 my $command = shift @ARGV;
 my @RUN = @ARGV ? @ARGV : qw< prim simple philosophers dynamicStacks expensiveConflict >;
@@ -43,7 +46,8 @@ sub init {
   mkdir $OUTDIR;
   mkdir "$RESULTDIR/$_" for @RUN;
   chdir "Benchmarks";
-  system('sbt','clean', 'jmh:stage');
+  system('sbt','clean', 'stage', 'compileJmh');
+  #system('sbt','clean', 'jmh:compile', 'jmh:stage');
   chdir "..";
 }
 

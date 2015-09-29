@@ -25,7 +25,7 @@ com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings
 
 enablePlugins(JmhPlugin)
 
-//TaskKey[Unit]("compileJmh") <<= Seq(compile in pl.project13.scala.sbt.SbtJmh.JmhKeys.Jmh).dependOn
+TaskKey[Unit]("compileJmh") <<= Seq(compile in pl.project13.scala.sbt.SbtJmh.JmhKeys.Jmh).dependOn
 
 //mainClass in (Compile, run) := Some("benchmarks.Main")
 
