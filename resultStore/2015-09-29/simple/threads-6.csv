@@ -1,0 +1,7 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: riname"
+"benchmarks.simple.Mapping.local","thrpt",6,50,951.040688,31.240734,"ops/ms",ParRP
+"benchmarks.simple.Mapping.local","thrpt",6,50,490.315933,54.890616,"ops/ms",REScalaSTM
+"benchmarks.simple.Mapping.local","thrpt",6,50,366.090998,16.548906,"ops/ms",REScalaSync
+"benchmarks.simple.Mapping.shared","thrpt",6,50,49.947115,10.924048,"ops/ms",ParRP
+"benchmarks.simple.Mapping.shared","thrpt",6,50,63.711145,1.746131,"ops/ms",REScalaSTM
+"benchmarks.simple.Mapping.shared","thrpt",6,50,289.395533,17.601180,"ops/ms",REScalaSync

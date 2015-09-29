@@ -1,0 +1,4 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: engineName","Param: spinningBackOff","Param: work"
+"benchmarks.dynamic.Stacks.run","thrpt",6,50,130.672647,9.181648,"ops/ms",synchron,7,0
+"benchmarks.dynamic.Stacks.run","thrpt",6,50,475.715714,12.624648,"ops/ms",spinning,7,0
+"benchmarks.dynamic.Stacks.run","thrpt",6,50,328.015612,19.867190,"ops/ms",stm,7,0
