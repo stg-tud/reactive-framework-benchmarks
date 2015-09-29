@@ -35,6 +35,7 @@ given($command) {
   when ("init") { init() }
   when ("run") { run() }
   when ("submit") { submitAll() }
+  when ("available") { say join " ", keys %{&selection()} }
 };
 
 sub init {
@@ -92,7 +93,21 @@ sub makeRuns {
 
 sub selectRun {
   my ($run) = @_;
-  my %selection = (
+
+  my %selection = %{selection()};
+  if (defined $selection{$run}) {
+    return $selection{$run}->();
+  }
+  else {
+    say "unknown: $run";
+    return ();
+  }
+
+}
+
+
+sub selection {
+  return {
     simple => sub {
       my @runs;
 
@@ -295,16 +310,7 @@ sub selectRun {
       @runs;
     },
 
-  );
-
-  if (defined $selection{$run}) {
-    return $selection{$run}->();
-  }
-  else {
-    say "unknown: $run";
-    return ();
-  }
-
+  };
 }
 
 
