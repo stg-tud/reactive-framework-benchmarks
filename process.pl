@@ -36,9 +36,17 @@ use File::Find;
     map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.local"} } @frameworks);
   plotBenchmarksFor($dbh, $table, "simple", "Simple Shared State",
     map { {Title => "$_", "Param: riname" => $_, Benchmark => "benchmarks.simple.Mapping.shared"} } @frameworks);
-  for my $layout (qw<alternating random third block>) {
-    plotBenchmarksFor($dbh, $table, "philosophers", $layout,
-      map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat", "Param: layout" => $layout} } @engines);
+  for my $philosophers (32, 64, 256) {
+    for my $layout (qw<alternating random third block>) {
+      plotBenchmarksFor($dbh, $table, "philosophers$philosophers", $layout,
+        map { {Title => $_, "Param: engineName" => $_ , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat",
+        "Param: philosophers" => $philosophers, "Param: layout" => $layout} } @engines);
+    }
+    for my $engine (@engines) {
+      plotBenchmarksFor($dbh, $table, "philosophers$philosophers", "philosopher comparison $engine",
+        map { {Title => $_, "Param: engineName" => $engine , Benchmark => "benchmarks.philosophers.PhilosopherCompetition.eat",
+        "Param: philosophers" => $philosophers, "Param: layout" => $_} } qw<alternating random third block>);
+    }
   }
   plotBenchmarksFor($dbh, $table, "philosophers", "Philosopher Table",
     map { {Title => $_, "Param: engineName" => $_ , Benchmark =>  "benchmarks.philosophers.PhilosopherCompetition.eat"} } @engines);
